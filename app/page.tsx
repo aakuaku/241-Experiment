@@ -190,6 +190,17 @@ export default function Home() {
     }
   }, [inputMessage]);
 
+  // Auto-scroll page to bottom when messages change or loading state changes
+  useEffect(() => {
+    // Use setTimeout to ensure DOM has updated
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 100);
+  }, [messages, isLoading]);
+
   const currentCondition = CONDITION_ORDER[currentConditionIndex];
   const currentModel = MODELS[currentModelIndex];
   const currentModelDisplayName = currentModel ? getModelDisplayName(currentModel, currentCondition) : '';

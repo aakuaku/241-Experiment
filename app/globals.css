@@ -513,8 +513,6 @@ p {
   border-radius: 6px;
   padding: 1.5rem;
   min-height: 300px;
-  max-height: none;
-  overflow-y: visible;
   margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
