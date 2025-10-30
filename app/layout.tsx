@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import './globals.css'
+import HeaderContent from '@/components/HeaderContent'
 
 export const metadata: Metadata = {
   title: 'AI Model Selection Experiment',
@@ -15,14 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="floating-header">
-          <div className="floating-header-content">
-            <div className="floating-header-text">241 experiment</div>
-            <Link href="/dashboard" className="dashboard-link">
-              Admin Dashboard
-            </Link>
-          </div>
-        </div>
+        <HeaderContent />
         {children}
       </body>
     </html>

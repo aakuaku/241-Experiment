@@ -45,9 +45,24 @@ export default function Home() {
   // Store conversations per condition/model combination
   const [conversations, setConversations] = useState<Record<string, Array<{ role: 'user' | 'assistant'; content: string }>>>({});
   
+  // Store ratings per condition/model combination
+  const [ratings, setRatings] = useState<Record<string, number>>({});
+  
+  // Toast notification state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
   // Helper to create conversation key
   const getConversationKey = (conditionIdx: number, modelIdx: number) => {
     return `condition-${conditionIdx}-model-${modelIdx}`;
+  };
+
+  // Helper function to format message content (convert markdown-style bold to HTML)
+  const formatMessageContent = (content: string): string => {
+    // Convert **text** to <strong>text</strong>
+    // Also preserve line breaks by converting \n to <br/>
+    return content
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br/>');
   };
 
   // Helper function to format description text with markdown-like formatting
@@ -139,6 +154,7 @@ export default function Home() {
         if (state.selections) setSelections(state.selections);
         if (state.startTime) setStartTime(state.startTime);
         if (state.conversations) setConversations(state.conversations);
+        if (state.ratings) setRatings(state.ratings);
         
         // Load current conversation
         const currentKey = `condition-${state.currentConditionIndex || 0}-model-${state.currentModelIndex || 0}`;
@@ -177,11 +193,14 @@ export default function Home() {
       selections,
       startTime,
       conversations: updatedConversations,
+      ratings,
     };
     
     localStorage.setItem('experiment-state', JSON.stringify(stateToSave));
-  }, [participantId, phase, consentChecked, task, currentConditionIndex, currentModelIndex, modelInteractions, selectedModel, selections, startTime, messages, conversations]);
+  }, [participantId, phase, consentChecked, task, currentConditionIndex, currentModelIndex, modelInteractions, selectedModel, selections, startTime, messages, conversations, ratings]);
 
+  const chatMessagesRef = useRef<HTMLDivElement>(null);
+  
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -190,15 +209,25 @@ export default function Home() {
     }
   }, [inputMessage]);
 
-  // Auto-scroll page to bottom when messages change or loading state changes
+  // Auto-scroll to the latest AI response when messages change or loading state changes
   useEffect(() => {
     // Use setTimeout to ensure DOM has updated
-    setTimeout(() => {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth'
-      });
-    }, 100);
+    if (chatMessagesRef.current) {
+      setTimeout(() => {
+        const lastMessage = chatMessagesRef.current?.lastElementChild;
+        if (lastMessage) {
+          const headerHeight = 80; // Height of floating header
+          const elementRect = (lastMessage as HTMLElement).getBoundingClientRect();
+          const elementPosition = elementRect.top + window.pageYOffset;
+          const offsetPosition = elementPosition - headerHeight - 20; // 20px extra spacing
+          
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
   }, [messages, isLoading]);
 
   const currentCondition = CONDITION_ORDER[currentConditionIndex];
@@ -314,7 +343,45 @@ export default function Home() {
     }
   };
 
+  const handleRatingSubmit = async (rating: number) => {
+    const key = getConversationKey(currentConditionIndex, currentModelIndex);
+    setRatings(prev => ({
+      ...prev,
+      [key]: rating,
+    }));
+    
+    // Save rating to database
+    try {
+      const currentCondition = CONDITION_ORDER[currentConditionIndex];
+      const response = await fetch('/api/ratings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          participantId,
+          condition: currentCondition,
+          modelId: MODELS[currentModelIndex].id,
+          rating,
+        }),
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to save rating');
+      }
+    } catch (error) {
+      console.error('Error saving rating:', error);
+    }
+  };
+
   const handleNextModel = () => {
+    // Check if rating is submitted
+    const ratingKey = getConversationKey(currentConditionIndex, currentModelIndex);
+    if (!ratings[ratingKey]) {
+      setToastMessage('Please rate this model\'s response before proceeding.');
+      return;
+    }
+    
     if (currentModelIndex < MODELS.length - 1) {
       // Save current conversation before moving to next model
       const key = getConversationKey(currentConditionIndex, currentModelIndex);
@@ -342,6 +409,13 @@ export default function Home() {
   
   // Navigate to next model (only forward navigation allowed)
   const handleNavigateToNextModel = () => {
+    // Check if rating is submitted
+    const ratingKey = getConversationKey(currentConditionIndex, currentModelIndex);
+    if (!ratings[ratingKey]) {
+      setToastMessage('Please rate this model\'s response before proceeding.');
+      return;
+    }
+    
     if (currentModelIndex < MODELS.length - 1) {
       // Save current conversation before moving to next model
       const key = getConversationKey(currentConditionIndex, currentModelIndex);
@@ -485,6 +559,37 @@ export default function Home() {
     }
   };
 
+  const handleReset = () => {
+    // Clear all localStorage
+    localStorage.removeItem('experiment-state');
+    localStorage.removeItem('experiment-results');
+    
+    // Reset all state
+    const newParticipantId = `P${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setParticipantId(newParticipantId);
+    setPhase('consent');
+    setConsentChecked(false);
+    setTask(null);
+    setCurrentConditionIndex(0);
+    setCurrentModelIndex(0);
+    setModelInteractions(new Set());
+    setSelectedModel(null);
+    setSelections([]);
+    setStartTime(null);
+    setMessages([]);
+    setInputMessage('');
+    setConversations({});
+    
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = '80px';
+    }
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Consent Phase
   if (phase === 'consent') {
     return (
@@ -546,6 +651,20 @@ export default function Home() {
     return (
       <main>
         <div className="container">
+          {/* Toast Notification */}
+          {toastMessage && (
+            <div className="toast-notification">
+              <span>{toastMessage}</span>
+              <button 
+                className="toast-close-button"
+                onClick={() => setToastMessage(null)}
+                aria-label="Close notification"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          
           <h1>Your Task</h1>
           <div className="task-intro">
             <h2>{task.title}</h2>
@@ -566,6 +685,7 @@ export default function Home() {
               <p><strong>Important:</strong> You will complete this same task across 4 different conditions. 
               In each condition, you'll try all 4 AI models and then select your preferred one.</p>
               <p style={{ marginTop: '0.75rem' }}><strong>How to interact:</strong> Review the data provided above, then ask questions about it in the chat. The AI will help you analyze, interpret, and draw insights from the data. You can ask multiple questions to explore different aspects of the task.</p>
+              <p style={{ marginTop: '0.75rem' }}><strong>Important:</strong> To ensure fair comparison, please ask the same set of questions to each of the 4 AI models in this condition. This will help you evaluate which model performs best for your needs.</p>
             </div>
             <div className="info-box" style={{ marginTop: '1rem' }}>
               <p><strong>Understanding Benchmark Scores:</strong></p>
@@ -601,6 +721,20 @@ export default function Home() {
     return (
       <main>
         <div className="container">
+          {/* Toast Notification */}
+          {toastMessage && (
+            <div className="toast-notification">
+              <span>{toastMessage}</span>
+              <button 
+                className="toast-close-button"
+                onClick={() => setToastMessage(null)}
+                aria-label="Close notification"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          
           {/* Progress indicators */}
           <div className="progress-section">
             <div className="progress-bar">
@@ -614,7 +748,7 @@ export default function Home() {
           <div className="model-trial-header">
             <h1>Trying Model {currentModelIndex + 1} of {MODELS.length}</h1>
             <div className="model-card-large">
-              <div className="model-title-large">{currentModelDisplayName}</div>
+              <div className="model-title-large"><span className="model-badge">{currentModelDisplayName}</span></div>
               {showBenchmarks && (
                 <>
                   <div className="benchmarks">
@@ -666,12 +800,15 @@ export default function Home() {
 
           {hasInteracted || messages.length > 0 ? (
             <div className="chat-section">
-              <h3>Conversation with {currentModelDisplayName}</h3>
-              <div className="chat-messages">
+              <h3>Conversation with <span className="model-badge">{currentModelDisplayName}</span></h3>
+              <div className="chat-messages" ref={chatMessagesRef}>
                 {messages.map((msg, idx) => (
                   <div key={idx} className={`chat-message ${msg.role === 'user' ? 'user-message' : 'assistant-message'}`}>
                     <div className="message-role">{msg.role === 'user' ? 'You' : currentModelDisplayName}</div>
-                    <div className="message-content">{msg.content}</div>
+                    <div 
+                      className="message-content" 
+                      dangerouslySetInnerHTML={{ __html: formatMessageContent(msg.content) }}
+                    />
                   </div>
                 ))}
                 {isLoading && (
@@ -692,6 +829,49 @@ export default function Home() {
                   </div>
                 )}
               </div>
+              
+              {/* Sample Questions - always visible */}
+              {task && task.sampleQuestions && task.sampleQuestions.length > 0 && (
+                <div style={{ marginTop: '1.5rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                  <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#555', marginBottom: '0.5rem', textAlign: 'left' }}>
+                    Sample Questions:
+                  </p>
+                  <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.75rem', textAlign: 'left', fontStyle: 'italic' }}>
+                    To ensure fair comparison, ask the same set of questions to each of the 4 AI models in this condition.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {task.sampleQuestions.map((question, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputMessage(question)}
+                        style={{
+                          fontSize: '0.85rem',
+                          padding: '0.5rem 0.75rem',
+                          textAlign: 'left',
+                          backgroundColor: '#fff',
+                          border: '1px solid #ddd',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          color: '#1a1a1a',
+                          transition: 'all 0.2s ease',
+                          fontFamily: 'inherit'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f0f7ff';
+                          e.currentTarget.style.borderColor = '#4a90e2';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fff';
+                          e.currentTarget.style.borderColor = '#ddd';
+                        }}
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="chat-input-container">
                 <textarea
                   ref={textareaRef}
@@ -711,14 +891,69 @@ export default function Home() {
                   Send
                 </button>
               </div>
+              
               {taskCompleted && (
-                <div className="button-container" style={{ marginTop: '1rem' }}>
-                  <button className="button" onClick={handleNextModel}>
-                    {currentModelIndex < MODELS.length - 1 
-                      ? `Continue to Next Model (${currentModelIndex + 2}/${MODELS.length})`
-                      : 'Proceed to Model Selection'}
-                  </button>
-                </div>
+                <>
+                  {/* Rating Section */}
+                  <div className="rating-section" style={{ marginTop: '2rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600, color: '#333', textAlign: 'center' }}>
+                      How well did this model perform on the task?
+                    </h4>
+                    <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#666', fontSize: '0.9rem' }}>
+                      Rate your experience with this model's responses (1 = Poor, 5 = Excellent)
+                    </p>
+                    <div className="rating-stars" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {[1, 2, 3, 4, 5].map((rating) => {
+                        const currentKey = getConversationKey(currentConditionIndex, currentModelIndex);
+                        const selectedRating = ratings[currentKey];
+                        const isSelected = selectedRating && rating <= selectedRating;
+                        return (
+                          <button
+                            key={rating}
+                            onClick={() => handleRatingSubmit(rating)}
+                            className={`rating-star ${isSelected ? 'selected' : ''}`}
+                            style={{
+                              fontSize: '2rem',
+                              backgroundColor: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '0.25rem',
+                              color: isSelected ? '#ffc107' : '#ddd',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.color = '#ffc107';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.color = '#ddd';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }
+                            }}
+                          >
+                            ★
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {ratings[getConversationKey(currentConditionIndex, currentModelIndex)] && (
+                      <p style={{ textAlign: 'center', marginTop: '0.75rem', color: '#666', fontSize: '0.9rem' }}>
+                        You rated this model: {ratings[getConversationKey(currentConditionIndex, currentModelIndex)]}/5
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="button-container" style={{ marginTop: '1rem' }}>
+                    <button className="button" onClick={handleNextModel}>
+                      {currentModelIndex < MODELS.length - 1 
+                        ? `Continue to Next Model (${currentModelIndex + 2}/${MODELS.length})`
+                        : 'Proceed to Model Selection'}
+                    </button>
+                  </div>
+                </>
               )}
               
               {/* Navigation buttons - only forward, only when task is completed */}
@@ -750,8 +985,51 @@ export default function Home() {
           ) : (
             <div className="interaction-section">
               <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#666' }}>
-                Start interacting with {currentModelDisplayName} to complete the task. Type your questions or requests below.
+                Start interacting with <span className="model-badge">{currentModelDisplayName}</span> to complete the task. Type your questions or requests below.
               </p>
+              
+              {/* Sample Questions */}
+              {task && task.sampleQuestions && task.sampleQuestions.length > 0 && (
+                <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                  <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#555', marginBottom: '0.5rem', textAlign: 'left' }}>
+                    Sample Questions:
+                  </p>
+                  <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.75rem', textAlign: 'left', fontStyle: 'italic' }}>
+                    To ensure fair comparison, ask the same set of questions to each of the 4 AI models in this condition.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {task.sampleQuestions.map((question, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputMessage(question)}
+                        style={{
+                          fontSize: '0.85rem',
+                          padding: '0.5rem 0.75rem',
+                          textAlign: 'left',
+                          backgroundColor: '#fff',
+                          border: '1px solid #ddd',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          color: '#1a1a1a',
+                          transition: 'all 0.2s ease',
+                          fontFamily: 'inherit'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f0f7ff';
+                          e.currentTarget.style.borderColor = '#4a90e2';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fff';
+                          e.currentTarget.style.borderColor = '#ddd';
+                        }}
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="chat-input-container">
                 <textarea
                   ref={textareaRef}
@@ -785,6 +1063,20 @@ export default function Home() {
     return (
       <main>
         <div className="container">
+          {/* Toast Notification */}
+          {toastMessage && (
+            <div className="toast-notification">
+              <span>{toastMessage}</span>
+              <button 
+                className="toast-close-button"
+                onClick={() => setToastMessage(null)}
+                aria-label="Close notification"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          
           <div className="progress-section">
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: `${conditionProgress}%` }}></div>

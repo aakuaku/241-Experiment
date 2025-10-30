@@ -22,6 +22,7 @@ export interface Task {
   title: string;
   description: string;
   type: 'data-analysis' | 'comparison' | 'interpretation' | 'synthesis' | 'evaluation';
+  sampleQuestions: string[];
 }
 
 export interface ConditionSelection {
@@ -93,49 +94,97 @@ export const TASKS: Task[] = [
     id: 'task-1',
     title: 'Analyze Customer Feedback Data',
     type: 'data-analysis',
-    description: 'You have received customer feedback data from your product over the past month. The data includes sample feedback comments and overall statistics showing ratings distribution.\n\n**Your task:** Review the data in the tables below and use the AI assistant to ask questions that will help you:\n- Identify patterns and themes in the feedback\n- Understand what customers like most and least about the product\n- Discover insights that could improve customer satisfaction\n\nAsk multiple questions to explore different aspects of the data and get recommendations.',
+    description: 'You have received customer feedback data from your product over the past month. The data includes sample feedback comments and overall statistics showing ratings distribution.\n\nReview the data in the tables below and use the AI assistant to ask questions that will help you: Identify patterns and themes in the feedback, understand what customers like most and least about the product, discover insights that could improve customer satisfaction. Ask multiple questions to explore different aspects of the data and get recommendations.',
+    sampleQuestions: [
+      'What are the most common themes in the negative feedback?',
+      'Which features received the most positive comments?',
+      'What patterns do you notice in the ratings distribution?',
+      'What recommendations would you give to improve customer satisfaction?'
+    ],
   },
   {
     id: 'task-2',
     title: 'Compare Marketing Strategies',
     type: 'comparison',
-    description: 'Your company is deciding between two marketing strategies for your next campaign. Both strategies have the same budget but different approaches, expected reach, and previous performance metrics.\n\n**Your task:** Review the strategy comparison table below and use the AI assistant to ask questions that will help you:\n- Compare the strengths and weaknesses of each strategy\n- Understand the trade-offs between short-term and long-term approaches\n- Evaluate which strategy might be more effective for your goals\n\nAsk questions to explore different factors and get recommendations based on your analysis.',
+    description: 'Your company is deciding between two marketing strategies for your next campaign. Both strategies have the same budget but different approaches, expected reach, and previous performance metrics.\n\nReview the strategy comparison table below and use the AI assistant to ask questions that will help you: Compare the strengths and weaknesses of each strategy, understand the trade-offs between short-term and long-term approaches, evaluate which strategy might be more effective for your goals. Ask questions to explore different factors and get recommendations based on your analysis.',
+    sampleQuestions: [
+      'What are the key differences between these two marketing strategies?',
+      'Which strategy would be better for short-term sales growth?',
+      'What risks should we consider for each approach?',
+      'What factors should we prioritize in making this decision?'
+    ],
   },
   {
     id: 'task-3',
     title: 'Interpret Market Research Results',
     type: 'interpretation',
-    description: 'A market research study has been conducted on consumer preferences for eco-friendly products. The research reveals interesting patterns between what people say they prefer versus what they actually purchase.\n\n**Your task:** Review the data tables below showing preference vs. behavior gaps and income factors. Use the AI assistant to ask questions that will help you:\n- Understand why there\'s a gap between stated preferences and actual behavior\n- Identify factors that explain demographic differences\n- Discover implications for businesses trying to promote eco-friendly products\n\nAsk multiple questions to explore different aspects of this data and uncover insights.',
+    description: 'A market research study has been conducted on consumer preferences for eco-friendly products. The research reveals interesting patterns between what people say they prefer versus what they actually purchase.\n\nReview the data tables below showing preference vs. behavior gaps and income factors. Use the AI assistant to ask questions that will help you: Understand why there\'s a gap between stated preferences and actual behavior, identify factors that explain demographic differences, discover implications for businesses trying to promote eco-friendly products. Ask multiple questions to explore different aspects of this data and uncover insights.',
+    sampleQuestions: [
+      'Why do you think there\'s a gap between what people say they prefer and what they actually buy?',
+      'How does income level affect purchasing behavior?',
+      'What might explain the differences across age groups?',
+      'What strategies could businesses use to bridge this gap?'
+    ],
   },
   {
     id: 'task-4',
     title: 'Synthesize Multiple Data Sources',
     type: 'synthesis',
-    description: 'You need to make a decision about expanding your business to a new market. You have access to multiple data sources including sales data from similar launches, economic indicators, competitor analysis, and internal capacity information.\n\n**Your task:** Review the data tables below showing market comparisons and economic indicators. Use the AI assistant to ask questions that will help you:\n- Identify key factors that should influence your expansion decision\n- Weigh the risks and opportunities from different perspectives\n- Synthesize information from multiple sources to make an informed recommendation\n\nAsk questions to explore different aspects of the data and get guidance on your decision.',
+    description: 'You need to make a decision about expanding your business to a new market. You have access to multiple data sources including sales data from similar launches, economic indicators, competitor analysis, and internal capacity information.\n\nReview the data tables below showing market comparisons and economic indicators. Use the AI assistant to ask questions that will help you: Identify key factors that should influence your expansion decision, weigh the risks and opportunities from different perspectives, synthesize information from multiple sources to make an informed recommendation. Ask questions to explore different aspects of the data and get guidance on your decision.',
+    sampleQuestions: [
+      'What are the most important factors to consider for market expansion?',
+      'What risks should we be most concerned about?',
+      'How do the economic indicators compare across markets?',
+      'What recommendation would you make based on all this data?'
+    ],
   },
   {
     id: 'task-5',
     title: 'Evaluate Business Proposal',
     type: 'evaluation',
-    description: 'A startup has pitched a business idea to you seeking investment. The proposal includes details about their product concept, market size claims, business model, competitive landscape, and funding requirements.\n\n**Your task:** Review the proposal summary table below. Use the AI assistant to ask questions that will help you:\n- Analyze the strengths and weaknesses of the business idea\n- Assess the feasibility and market potential\n- Identify potential risks and concerns\n- Develop your overall assessment and recommendation\n\nAsk questions to explore different aspects of the proposal and get guidance on your evaluation.',
+    description: 'A startup has pitched a business idea to you seeking investment. The proposal includes details about their product concept, market size claims, business model, competitive landscape, and funding requirements.\n\nReview the proposal summary table below. Use the AI assistant to ask questions that will help you: Analyze the strengths and weaknesses of the business idea, assess the feasibility and market potential, identify potential risks and concerns, develop your overall assessment and recommendation. Ask questions to explore different aspects of the proposal and get guidance on your evaluation.',
+    sampleQuestions: [
+      'What are the strongest aspects of this business proposal?',
+      'What concerns or risks should I be aware of?',
+      'Does the market size claim seem realistic?',
+      'What questions should I ask the founders before investing?'
+    ],
   },
   {
     id: 'task-6',
     title: 'Analyze User Behavior Patterns',
     type: 'data-analysis',
-    description: 'You have user behavior data from your website. A recent change was made to the checkout process, and you\'ve noticed some interesting patterns in the metrics - some improved while others declined.\n\n**Your task:** Review the website metrics comparison and device breakdown tables below. Use the AI assistant to ask questions that will help you:\n- Understand what might be causing these changes\n- Identify concerning trends or patterns\n- Discover insights about user behavior across different devices\n- Get suggestions on how to improve the situation\n\nAsk multiple questions to thoroughly analyze the data and find actionable insights.',
+    description: 'You have user behavior data from your website. A recent change was made to the checkout process, and you\'ve noticed some interesting patterns in the metrics - some improved while others declined.\n\nReview the website metrics comparison and device breakdown tables below. Use the AI assistant to ask questions that will help you: Understand what might be causing these changes, identify concerning trends or patterns, discover insights about user behavior across different devices, get suggestions on how to improve the situation. Ask multiple questions to thoroughly analyze the data and find actionable insights.',
+    sampleQuestions: [
+      'What might explain the changes in conversion rate after the checkout update?',
+      'Are there differences in behavior across device types?',
+      'What trends in the data are concerning?',
+      'What changes would you recommend to improve the metrics?'
+    ],
   },
   {
     id: 'task-7',
     title: 'Compare Product Features',
     type: 'comparison',
-    description: 'Your team is deciding between two feature additions for your product. Each feature has different development requirements, expected adoption rates, costs, and strategic value.\n\n**Your task:** Review the feature comparison table below. Use the AI assistant to ask questions that will help you:\n- Compare the trade-offs between development time and adoption\n- Evaluate the strategic value and competitive advantage of each\n- Analyze which feature might provide better ROI\n- Make a recommendation on which to prioritize\n\nAsk questions to explore different factors and get guidance on your decision.',
+    description: 'Your team is deciding between two feature additions for your product. Each feature has different development requirements, expected adoption rates, costs, and strategic value.\n\nReview the feature comparison table below. Use the AI assistant to ask questions that will help you: Compare the trade-offs between development time and adoption, evaluate the strategic value and competitive advantage of each, analyze which feature might provide better ROI, make a recommendation on which to prioritize. Ask questions to explore different factors and get guidance on your decision.',
+    sampleQuestions: [
+      'What are the main trade-offs between these two features?',
+      'Which feature would provide better return on investment?',
+      'How important is the development time vs. expected adoption?',
+      'What would you recommend prioritizing and why?'
+    ],
   },
   {
     id: 'task-8',
     title: 'Interpret Survey Results',
     type: 'interpretation',
-    description: 'A survey was conducted among employees about work-life balance, and separate productivity metrics were collected. The results show interesting patterns regarding satisfaction, work arrangements, and performance.\n\n**Your task:** Review the survey results and productivity metrics tables below. Use the AI assistant to ask questions that will help you:\n- Explain what the data reveals about employee preferences and satisfaction\n- Identify contradictions or surprising findings\n- Understand the relationship between work arrangements and productivity\n- Suggest actions the organization might consider\n\nAsk multiple questions to thoroughly interpret the results and discover insights.',
+    description: 'A survey was conducted among employees about work-life balance, and separate productivity metrics were collected. The results show interesting patterns regarding satisfaction, work arrangements, and performance.\n\nReview the survey results and productivity metrics tables below. Use the AI assistant to ask questions that will help you: Explain what the data reveals about employee preferences and satisfaction, identify contradictions or surprising findings, understand the relationship between work arrangements and productivity, suggest actions the organization might consider. Ask multiple questions to thoroughly interpret the results and discover insights.',
+    sampleQuestions: [
+      'What patterns do you see between work arrangements and satisfaction?',
+      'Are there any surprising findings in this data?',
+      'How does productivity relate to work-life balance satisfaction?',
+      'What actions should the organization consider based on these results?'
+    ],
   },
 ];
 

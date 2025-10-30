@@ -553,8 +553,8 @@ p {
   padding: 0.75rem 1rem;
   border-radius: 6px;
   max-width: 70%;
-  white-space: pre-wrap;
   word-wrap: break-word;
+  line-height: 1.6;
 }
 
 .user-message .message-content {
@@ -565,6 +565,11 @@ p {
 .assistant-message .message-content {
   background-color: #f0f0f0;
   color: #333;
+}
+
+.message-content strong {
+  font-weight: 600;
+  color: inherit;
 }
 
 /* Loading animations */
@@ -694,6 +699,7 @@ p {
   background: white;
   z-index: 1000;
   padding: 1rem 2rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .floating-header-content {
@@ -719,10 +725,99 @@ p {
   padding: 0.5rem 1rem;
   border-radius: 6px;
   transition: background-color 0.2s ease;
+  background-color: #ffffff;
+  line-height: 1.5;
+  display: inline-block;
+  border: 1px solid #ddd;
 }
 
 .dashboard-link:hover {
   background-color: #f0f7ff;
+}
+
+/* Model badge */
+.model-badge {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  background-color: #4a90e2;
+  color: white;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 1em;
+  margin: 0 0.25rem;
+}
+
+.model-title-large .model-badge {
+  font-size: 1.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 20px;
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  transform: none;
+  background-color: #e74c3c;
+  color: white;
+  padding: 1rem 1.5rem;
+  padding-right: 3rem;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  font-size: 0.95rem;
+  font-weight: 500;
+  animation: toastSlideIn 0.3s ease-out;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toast-notification span {
+  flex: 1;
+}
+
+.toast-close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 300;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: opacity 0.2s ease;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.toast-close-button:hover {
+  opacity: 0.8;
+}
+
+.toast-close-button:active {
+  opacity: 0.6;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Dashboard styles */

@@ -24,6 +24,15 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+.env.local
+.env.production
+.env.development
+
+# API keys - never commit these
+*.key
+*_api_key*
+*_API_KEY*
 
 # vercel
 .vercel
