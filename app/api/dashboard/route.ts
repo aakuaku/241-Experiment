@@ -64,12 +64,40 @@ export async function GET() {
       ORDER BY cs.condition, count DESC
     `);
 
+    // Get average ratings per model
+    const modelRatingsQuery = await pool.query(`
+      SELECT 
+        mr.model_id,
+        COUNT(*) as total_ratings,
+        AVG(mr.rating) as avg_rating,
+        MIN(mr.rating) as min_rating,
+        MAX(mr.rating) as max_rating
+      FROM model_ratings mr
+      GROUP BY mr.model_id
+      ORDER BY avg_rating DESC
+    `);
+
+    // Get average ratings per condition
+    const conditionRatingsQuery = await pool.query(`
+      SELECT 
+        mr.condition,
+        COUNT(*) as total_ratings,
+        AVG(mr.rating) as avg_rating,
+        MIN(mr.rating) as min_rating,
+        MAX(mr.rating) as max_rating
+      FROM model_ratings mr
+      GROUP BY mr.condition
+      ORDER BY mr.condition
+    `);
+
     return NextResponse.json({
       summary: summaryQuery.rows[0],
       conditionDistribution: conditionQuery.rows,
       modelDistribution: modelQuery.rows,
       taskDistribution: taskQuery.rows,
       selectionsByCondition: selectionsByConditionQuery.rows,
+      modelRatings: modelRatingsQuery.rows,
+      conditionRatings: conditionRatingsQuery.rows,
     }, { status: 200 });
   } catch (error: any) {
     console.error('Error fetching dashboard data:', error);

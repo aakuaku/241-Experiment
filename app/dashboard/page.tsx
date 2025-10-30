@@ -30,6 +30,20 @@ interface DashboardData {
     selected_model: string;
     count: string;
   }>;
+  modelRatings: Array<{
+    model_id: string;
+    total_ratings: string;
+    avg_rating: string;
+    min_rating: string;
+    max_rating: string;
+  }>;
+  conditionRatings: Array<{
+    condition: string;
+    total_ratings: string;
+    avg_rating: string;
+    min_rating: string;
+    max_rating: string;
+  }>;
 }
 
 interface Experiment {
@@ -351,6 +365,76 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </div>
+
+            {/* Model Ratings */}
+            {dashboardData.modelRatings && dashboardData.modelRatings.length > 0 && (
+              <div className="dashboard-section">
+                <h2>Model Ratings</h2>
+                <table className="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Model</th>
+                      <th>Average Rating</th>
+                      <th>Total Ratings</th>
+                      <th>Min Rating</th>
+                      <th>Max Rating</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dashboardData.modelRatings.map((item) => (
+                      <tr key={item.model_id}>
+                        <td>{getRealModelName(item.model_id)}</td>
+                        <td>
+                          <strong>{parseFloat(item.avg_rating).toFixed(2)}</strong>
+                          <span style={{ color: '#666', fontSize: '0.9rem', marginLeft: '0.5rem' }}>
+                            ({'★'.repeat(Math.round(parseFloat(item.avg_rating)))})
+                          </span>
+                        </td>
+                        <td>{item.total_ratings}</td>
+                        <td>{item.min_rating}</td>
+                        <td>{item.max_rating}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Condition Ratings */}
+            {dashboardData.conditionRatings && dashboardData.conditionRatings.length > 0 && (
+              <div className="dashboard-section">
+                <h2>Ratings by Condition</h2>
+                <table className="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Condition</th>
+                      <th>Description</th>
+                      <th>Average Rating</th>
+                      <th>Total Ratings</th>
+                      <th>Min Rating</th>
+                      <th>Max Rating</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dashboardData.conditionRatings.map((item) => (
+                      <tr key={item.condition}>
+                        <td>{item.condition}</td>
+                        <td>{getConditionName(item.condition)}</td>
+                        <td>
+                          <strong>{parseFloat(item.avg_rating).toFixed(2)}</strong>
+                          <span style={{ color: '#666', fontSize: '0.9rem', marginLeft: '0.5rem' }}>
+                            ({'★'.repeat(Math.round(parseFloat(item.avg_rating)))})
+                          </span>
+                        </td>
+                        <td>{item.total_ratings}</td>
+                        <td>{item.min_rating}</td>
+                        <td>{item.max_rating}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </>
         )}
 
