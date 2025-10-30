@@ -3,7 +3,7 @@ import pool from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
-    const { participantId, condition, modelId, rating } = await request.json();
+    const { participantId, condition, modelId, rating, taskId, startTime } = await request.json();
 
     if (!participantId || !condition || !modelId || !rating) {
       return NextResponse.json(
@@ -25,19 +25,35 @@ export async function POST(request: NextRequest) {
     }
 
     // Get experiment ID for this participant
-    const experimentResult = await pool.query(
+    let experimentResult = await pool.query(
       'SELECT id FROM experiments WHERE participant_id = $1',
       [participantId]
     );
 
-    if (experimentResult.rows.length === 0) {
-      return NextResponse.json(
-        { error: 'Experiment not found for this participant' },
-        { status: 404 }
-      );
-    }
+    let experimentId: number;
 
-    const experimentId = experimentResult.rows[0].id;
+    // If experiment doesn't exist, create it
+    if (experimentResult.rows.length === 0) {
+      // Create experiment record if we have the necessary information
+      if (taskId && startTime) {
+        const newExperimentResult = await pool.query(
+          `INSERT INTO experiments (participant_id, task_id, start_time)
+           VALUES ($1, $2, $3)
+           RETURNING id`,
+          [participantId, taskId, new Date(startTime)]
+        );
+        experimentId = newExperimentResult.rows[0].id;
+      } else {
+        // If we don't have taskId and startTime, we can't create the experiment
+        // This shouldn't happen in normal flow, but handle gracefully
+        return NextResponse.json(
+          { error: 'Experiment not found for this participant. Please complete the experiment first.' },
+          { status: 404 }
+        );
+      }
+    } else {
+      experimentId = experimentResult.rows[0].id;
+    }
 
     // Insert rating
     await pool.query(

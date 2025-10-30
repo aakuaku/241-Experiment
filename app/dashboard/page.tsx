@@ -113,12 +113,93 @@ export default function Dashboard() {
     return `${displayName} (${realName})`;
   };
 
+  const formatTimeToHours = (seconds: number): string => {
+    if (!seconds || seconds === 0) return '0h';
+    const hours = seconds / 3600;
+    if (hours < 1) {
+      const minutes = Math.round(seconds / 60);
+      return `${minutes}m`;
+    }
+    // Show hours with 2 decimal places if less than 1 hour, otherwise round to 1 decimal
+    if (hours < 10) {
+      return `${hours.toFixed(2)}h`;
+    }
+    return `${hours.toFixed(1)}h`;
+  };
+
   if (loading) {
     return (
       <main>
         <div className="container">
           <h1>Admin Dashboard</h1>
-          <p>Loading...</p>
+          
+          {/* Summary Statistics Skeleton */}
+          <div className="dashboard-section">
+            <div className="skeleton-h2"></div>
+            <div className="stats-grid">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="skeleton-card">
+                  <div className="skeleton-stat-value"></div>
+                  <div className="skeleton-stat-label"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Condition Distribution Skeleton */}
+          <div className="dashboard-section">
+            <div className="skeleton-h2"></div>
+            <div style={{ marginTop: '1rem' }}>
+              <div className="skeleton-table-header" style={{ marginBottom: '1rem', height: '2.5rem' }}></div>
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="skeleton-table-row"></div>
+              ))}
+            </div>
+          </div>
+
+          {/* Model Selection Distribution Skeleton */}
+          <div className="dashboard-section">
+            <div className="skeleton-h2"></div>
+            <div style={{ marginTop: '1rem' }}>
+              <div className="skeleton-table-header" style={{ marginBottom: '1rem', height: '2.5rem' }}></div>
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="skeleton-table-row"></div>
+              ))}
+            </div>
+          </div>
+
+          {/* Selections by Condition Skeleton */}
+          <div className="dashboard-section">
+            <div className="skeleton-h2"></div>
+            <div style={{ marginTop: '1rem' }}>
+              <div className="skeleton-table-header" style={{ marginBottom: '1rem', height: '2.5rem' }}></div>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="skeleton-table-row"></div>
+              ))}
+            </div>
+          </div>
+
+          {/* Task Distribution Skeleton */}
+          <div className="dashboard-section">
+            <div className="skeleton-h2"></div>
+            <div style={{ marginTop: '1rem' }}>
+              <div className="skeleton-table-header" style={{ marginBottom: '1rem', height: '2.5rem' }}></div>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="skeleton-table-row"></div>
+              ))}
+            </div>
+          </div>
+
+          {/* All Experiments Skeleton */}
+          <div className="dashboard-section">
+            <div className="skeleton-h2"></div>
+            <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+              <div className="skeleton-table-header" style={{ marginBottom: '1rem', height: '2.5rem' }}></div>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="skeleton-table-row"></div>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -172,7 +253,7 @@ export default function Dashboard() {
                 </div>
                 <div className="stat-card">
                   <div className="stat-value">
-                    {Math.round(parseFloat(dashboardData.summary.avg_time_spent || '0'))}s
+                    {formatTimeToHours(Math.round(parseFloat(dashboardData.summary.avg_time_spent || '0')))}
                   </div>
                   <div className="stat-label">Avg Time Spent</div>
                 </div>
@@ -299,7 +380,7 @@ export default function Dashboard() {
                         </span>
                       ))}
                     </td>
-                    <td>{exp.total_time_spent}s</td>
+                    <td>{formatTimeToHours(exp.total_time_spent || 0)}</td>
                     <td>{new Date(exp.created_at).toLocaleString()}</td>
                   </tr>
                 ))}

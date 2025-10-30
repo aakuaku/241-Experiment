@@ -7,9 +7,9 @@ export async function POST(request: NextRequest) {
     const data: ExperimentData = await request.json();
     
     // Validate required fields
-    if (!data.participantId || !data.taskId || !data.startTime) {
+    if (!data.participantId || !data.taskId || !data.conditionSelections || !data.startTime) {
       return NextResponse.json(
-        { error: 'Missing required fields: participantId, taskId, startTime' },
+        { error: 'Missing required fields' },
         { status: 400 }
       );
     }
@@ -32,30 +32,17 @@ export async function POST(request: NextRequest) {
     try {
       await client.query('BEGIN');
 
-      // Check if experiment already exists (created at start)
-      const existingExperiment = await client.query(
+      // Check if experiment already exists (created by ratings API)
+      let experimentResult = await client.query(
         'SELECT id FROM experiments WHERE participant_id = $1',
         [data.participantId]
       );
 
       let experimentId: number;
 
-      if (existingExperiment.rows.length > 0) {
-        // Update existing experiment
-        experimentId = existingExperiment.rows[0].id;
-        await client.query(
-          `UPDATE experiments 
-           SET end_time = $1, total_time_spent = $2
-           WHERE id = $3`,
-          [
-            data.endTime ? new Date(data.endTime) : null,
-            data.totalTimeSpent || null,
-            experimentId,
-          ]
-        );
-      } else {
-        // Create new experiment record
-        const experimentResult = await client.query(
+      if (experimentResult.rows.length === 0) {
+        // Insert new experiment record
+        experimentResult = await client.query(
           `INSERT INTO experiments (participant_id, task_id, start_time, end_time, total_time_spent)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING id`,
@@ -68,30 +55,34 @@ export async function POST(request: NextRequest) {
           ]
         );
         experimentId = experimentResult.rows[0].id;
+      } else {
+        // Update existing experiment record with end_time and total_time_spent
+        experimentId = experimentResult.rows[0].id;
+        await client.query(
+          `UPDATE experiments 
+           SET end_time = $1, total_time_spent = $2
+           WHERE id = $3`,
+          [
+            data.endTime ? new Date(data.endTime) : null,
+            data.totalTimeSpent || null,
+            experimentId,
+          ]
+        );
       }
 
-      // Insert condition selections if provided
-      if (data.conditionSelections && data.conditionSelections.length > 0) {
-        // Delete existing selections for this experiment to avoid duplicates
+      // Insert condition selections
+      for (const selection of data.conditionSelections) {
         await client.query(
-          'DELETE FROM condition_selections WHERE experiment_id = $1',
-          [experimentId]
+          `INSERT INTO condition_selections (experiment_id, condition, selected_model, real_model_id, timestamp)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            experimentId,
+            selection.condition,
+            selection.selectedModel,
+            selection.realModelId,
+            new Date(selection.timestamp),
+          ]
         );
-
-        // Insert new selections
-        for (const selection of data.conditionSelections) {
-          await client.query(
-            `INSERT INTO condition_selections (experiment_id, condition, selected_model, real_model_id, timestamp)
-             VALUES ($1, $2, $3, $4, $5)`,
-            [
-              experimentId,
-              selection.condition,
-              selection.selectedModel,
-              selection.realModelId,
-              new Date(selection.timestamp),
-            ]
-          );
-        }
       }
 
       await client.query('COMMIT');
