@@ -35,10 +35,10 @@ export interface ConditionSelection {
 export interface ExperimentData {
   participantId: string;
   taskId: string;
-  conditionSelections: ConditionSelection[];
+  conditionSelections?: ConditionSelection[]; // Optional - can be empty when creating experiment at start
   startTime: string;
-  endTime: string;
-  totalTimeSpent: number; // in seconds
+  endTime?: string;
+  totalTimeSpent?: number; // in seconds
 }
 
 // The 4 AI models used in the experiment

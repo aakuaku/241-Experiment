@@ -237,25 +237,52 @@ export default function Home() {
 
   const handleConsentSubmit = async () => {
     if (consentChecked) {
+      let selectedTask: Task | null = null;
+      
       try {
         // Fetch a balanced task assignment from the API
         const response = await fetch('/api/tasks');
         if (response.ok) {
           const data = await response.json();
-          setTask(data.task);
+          selectedTask = data.task;
+          setTask(selectedTask);
         } else {
           // Fallback to random selection if API fails
-          const selectedTask = selectRandomTask();
+          selectedTask = selectRandomTask();
           setTask(selectedTask);
         }
       } catch (error) {
         console.error('Error fetching task:', error);
         // Fallback to random selection
-        const selectedTask = selectRandomTask();
+        selectedTask = selectRandomTask();
         setTask(selectedTask);
       }
+      
+      const startTimeNow = Date.now();
+      setStartTime(startTimeNow);
+      
+      // Create experiment record immediately so ratings can be saved
+      if (participantId && selectedTask) {
+        try {
+          await fetch('/api/experiments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              participantId,
+              taskId: selectedTask.id,
+              startTime: new Date(startTimeNow).toISOString(),
+              conditionSelections: [], // Will be added when experiment completes
+            }),
+          });
+        } catch (error) {
+          console.error('Error creating experiment record:', error);
+          // Continue anyway - experiment will be created at the end
+        }
+      }
+      
       setPhase('task-intro');
-      setStartTime(Date.now());
     }
   };
 

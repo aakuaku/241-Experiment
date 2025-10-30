@@ -7,9 +7,9 @@ export async function POST(request: NextRequest) {
     const data: ExperimentData = await request.json();
     
     // Validate required fields
-    if (!data.participantId || !data.taskId || !data.conditionSelections || !data.startTime) {
+    if (!data.participantId || !data.taskId || !data.startTime) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: participantId, taskId, startTime' },
         { status: 400 }
       );
     }
@@ -32,35 +32,66 @@ export async function POST(request: NextRequest) {
     try {
       await client.query('BEGIN');
 
-      // Insert experiment record
-      const experimentResult = await client.query(
-        `INSERT INTO experiments (participant_id, task_id, start_time, end_time, total_time_spent)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id`,
-        [
-          data.participantId,
-          data.taskId,
-          new Date(data.startTime),
-          data.endTime ? new Date(data.endTime) : null,
-          data.totalTimeSpent || null,
-        ]
+      // Check if experiment already exists (created at start)
+      const existingExperiment = await client.query(
+        'SELECT id FROM experiments WHERE participant_id = $1',
+        [data.participantId]
       );
 
-      const experimentId = experimentResult.rows[0].id;
+      let experimentId: number;
 
-      // Insert condition selections
-      for (const selection of data.conditionSelections) {
+      if (existingExperiment.rows.length > 0) {
+        // Update existing experiment
+        experimentId = existingExperiment.rows[0].id;
         await client.query(
-          `INSERT INTO condition_selections (experiment_id, condition, selected_model, real_model_id, timestamp)
-           VALUES ($1, $2, $3, $4, $5)`,
+          `UPDATE experiments 
+           SET end_time = $1, total_time_spent = $2
+           WHERE id = $3`,
           [
+            data.endTime ? new Date(data.endTime) : null,
+            data.totalTimeSpent || null,
             experimentId,
-            selection.condition,
-            selection.selectedModel,
-            selection.realModelId,
-            new Date(selection.timestamp),
           ]
         );
+      } else {
+        // Create new experiment record
+        const experimentResult = await client.query(
+          `INSERT INTO experiments (participant_id, task_id, start_time, end_time, total_time_spent)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id`,
+          [
+            data.participantId,
+            data.taskId,
+            new Date(data.startTime),
+            data.endTime ? new Date(data.endTime) : null,
+            data.totalTimeSpent || null,
+          ]
+        );
+        experimentId = experimentResult.rows[0].id;
+      }
+
+      // Insert condition selections if provided
+      if (data.conditionSelections && data.conditionSelections.length > 0) {
+        // Delete existing selections for this experiment to avoid duplicates
+        await client.query(
+          'DELETE FROM condition_selections WHERE experiment_id = $1',
+          [experimentId]
+        );
+
+        // Insert new selections
+        for (const selection of data.conditionSelections) {
+          await client.query(
+            `INSERT INTO condition_selections (experiment_id, condition, selected_model, real_model_id, timestamp)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [
+              experimentId,
+              selection.condition,
+              selection.selectedModel,
+              selection.realModelId,
+              new Date(selection.timestamp),
+            ]
+          );
+        }
       }
 
       await client.query('COMMIT');
