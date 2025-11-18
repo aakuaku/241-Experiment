@@ -10,7 +10,7 @@ export default function HeaderContent() {
         <div className="floating-header-text">AI Model Selection Experiment</div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <ResetButton />
-          <Link href="/dashboard" className="dashboard-link">
+          <Link href="/login" className="dashboard-link">
             Admin Dashboard
           </Link>
         </div>

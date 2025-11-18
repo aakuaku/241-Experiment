@@ -14,11 +14,16 @@ import {
   Task,
   ExperimentData,
   ConditionSelection,
+  TASK_THEMES,
+  TaskTheme,
+  getTasksByThemes,
+  TASKS,
 } from '@/lib/experiment';
 import { TaskDataTables } from '@/components/TaskDataTables';
 
 type ExperimentPhase = 
   | 'consent'
+  | 'theme-selection'
   | 'task-intro'
   | 'model-trial'
   | 'model-selection'
@@ -30,7 +35,14 @@ export default function Home() {
   const [participantId, setParticipantId] = useState<string>('');
   const [phase, setPhase] = useState<ExperimentPhase>('consent');
   const [consentChecked, setConsentChecked] = useState(false);
-  const [task, setTask] = useState<Task | null>(null);
+  const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+  const [tempSelectedThemes, setTempSelectedThemes] = useState<string[]>([]);
+  const [tasksByCondition, setTasksByCondition] = useState<Record<TreatmentCondition, Task | null>>({
+    'A': null,
+    'B': null,
+    'C': null,
+    'Control': null,
+  });
   const [currentConditionIndex, setCurrentConditionIndex] = useState(0);
   const [currentModelIndex, setCurrentModelIndex] = useState(0);
   const [modelInteractions, setModelInteractions] = useState<Set<string>>(new Set());
@@ -41,6 +53,7 @@ export default function Home() {
   const [inputMessage, setInputMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const sendButtonRef = useRef<HTMLButtonElement>(null);
   
   // Store conversations per condition/model combination
   const [conversations, setConversations] = useState<Record<string, Array<{ role: 'user' | 'assistant'; content: string }>>>({});
@@ -146,7 +159,18 @@ export default function Home() {
         if (state.participantId) setParticipantId(state.participantId);
         if (state.phase) setPhase(state.phase);
         if (state.consentChecked !== undefined) setConsentChecked(state.consentChecked);
-        if (state.task) setTask(state.task);
+        // Handle both old format (task) and new format (tasksByCondition)
+        if (state.tasksByCondition) {
+          setTasksByCondition(state.tasksByCondition);
+        } else if (state.task) {
+          // Migrate old format: assign same task to all conditions
+          setTasksByCondition({
+            'A': state.task,
+            'B': state.task,
+            'C': state.task,
+            'Control': state.task,
+          });
+        }
         if (state.currentConditionIndex !== undefined) setCurrentConditionIndex(state.currentConditionIndex);
         if (state.currentModelIndex !== undefined) setCurrentModelIndex(state.currentModelIndex);
         if (state.modelInteractions) setModelInteractions(new Set(state.modelInteractions));
@@ -185,7 +209,7 @@ export default function Home() {
       participantId,
       phase,
       consentChecked,
-      task,
+      tasksByCondition,
       currentConditionIndex,
       currentModelIndex,
       modelInteractions: Array.from(modelInteractions),
@@ -197,7 +221,7 @@ export default function Home() {
     };
     
     localStorage.setItem('experiment-state', JSON.stringify(stateToSave));
-  }, [participantId, phase, consentChecked, task, currentConditionIndex, currentModelIndex, modelInteractions, selectedModel, selections, startTime, messages, conversations, ratings]);
+  }, [participantId, phase, consentChecked, tasksByCondition, currentConditionIndex, currentModelIndex, modelInteractions, selectedModel, selections, startTime, messages, conversations, ratings]);
 
   const chatMessagesRef = useRef<HTMLDivElement>(null);
   
@@ -234,29 +258,84 @@ export default function Home() {
   const currentModel = MODELS[currentModelIndex];
   const currentModelDisplayName = currentModel ? getModelDisplayName(currentModel, currentCondition) : '';
   const showBenchmarks = currentCondition ? shouldShowBenchmarks(currentCondition) : false;
+  const currentTask = currentCondition ? tasksByCondition[currentCondition] : null;
 
-  const handleConsentSubmit = async () => {
+  const handleConsentSubmit = () => {
     if (consentChecked) {
-      try {
-        // Fetch a balanced task assignment from the API
-        const response = await fetch('/api/tasks');
-        if (response.ok) {
-          const data = await response.json();
-          setTask(data.task);
-        } else {
-          // Fallback to random selection if API fails
-          const selectedTask = selectRandomTask();
-          setTask(selectedTask);
-        }
-      } catch (error) {
-        console.error('Error fetching task:', error);
-        // Fallback to random selection
-        const selectedTask = selectRandomTask();
-        setTask(selectedTask);
-      }
-      setPhase('task-intro');
-      setStartTime(Date.now());
+      setPhase('theme-selection');
     }
+  };
+
+  const handleThemeSelection = async (themeIds: string[]) => {
+    if (themeIds.length === 0) {
+      alert('Please select at least one theme to continue.');
+      return;
+    }
+    
+    setSelectedThemes(themeIds);
+    
+    try {
+      // Fetch task assignments (one per condition) from the selected themes
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ themeIds }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.tasks) {
+          // Store tasks by condition
+          setTasksByCondition({
+            'B': data.tasks.B,
+            'A': data.tasks.A,
+            'C': data.tasks.C,
+            'Control': data.tasks.Control,
+          });
+        } else {
+          // Fallback: if API returns old format, assign same task to all conditions
+          const fallbackTask = data.task || selectRandomTask(getTasksByThemes(themeIds));
+          setTasksByCondition({
+            'B': fallbackTask,
+            'A': fallbackTask,
+            'C': fallbackTask,
+            'Control': fallbackTask,
+          });
+        }
+      } else {
+        // Fallback to random selection from selected themes
+        const availableTasks = getTasksByThemes(themeIds);
+        const conditionTasks = availableTasks.length >= 4 
+          ? availableTasks.sort(() => Math.random() - 0.5).slice(0, 4)
+          : Array(4).fill(null).map((_, i) => availableTasks[i % availableTasks.length]);
+        
+        setTasksByCondition({
+          'B': conditionTasks[0],
+          'A': conditionTasks[1],
+          'C': conditionTasks[2],
+          'Control': conditionTasks[3],
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      // Fallback to random selection from selected themes
+      const availableTasks = getTasksByThemes(themeIds);
+      const conditionTasks = availableTasks.length >= 4 
+        ? availableTasks.sort(() => Math.random() - 0.5).slice(0, 4)
+        : Array(4).fill(null).map((_, i) => availableTasks[i % availableTasks.length]);
+      
+      setTasksByCondition({
+        'B': conditionTasks[0],
+        'A': conditionTasks[1],
+        'C': conditionTasks[2],
+        'Control': conditionTasks[3],
+      });
+    }
+    
+    setPhase('task-intro');
+    setStartTime(Date.now());
   };
 
   const handleTaskIntroContinue = () => {
@@ -298,8 +377,8 @@ export default function Home() {
         body: JSON.stringify({
           modelId: modelId,
           messages: newMessages,
-          taskDescription: task?.description,
-          taskId: task?.id,
+          taskDescription: currentTask?.description,
+          taskId: currentTask?.id,
         }),
       });
 
@@ -363,7 +442,7 @@ export default function Home() {
           condition: currentCondition,
           modelId: MODELS[currentModelIndex].id,
           rating,
-          taskId: task?.id,
+          taskId: currentTask?.id,
           startTime: startTime ? new Date(startTime).toISOString() : null,
         }),
       });
@@ -451,15 +530,12 @@ export default function Home() {
         [currentKey]: messages,
       }));
       
-      // Navigate to next condition, starting with first model
+      // Navigate to next condition, starting with task intro
       setCurrentConditionIndex(currentConditionIndex + 1);
       setCurrentModelIndex(0);
-      setPhase('model-trial');
-      
-      // Load conversation for first model of next condition
-      const targetKey = getConversationKey(currentConditionIndex + 1, 0);
-      const targetMessages = conversations[targetKey] || [];
-      setMessages(targetMessages);
+      setPhase('task-intro'); // Show task intro for next condition
+      setModelInteractions(new Set());
+      setMessages([]);
       setInputMessage('');
       // Reset textarea height
       if (textareaRef.current) {
@@ -497,7 +573,7 @@ export default function Home() {
       setCurrentConditionIndex(currentConditionIndex + 1);
       setCurrentModelIndex(0);
       setSelectedModel(null);
-      setPhase('model-trial');
+      setPhase('task-intro'); // Show task intro for next condition
       setModelInteractions(new Set());
       setMessages([]);
       setInputMessage('');
@@ -513,14 +589,14 @@ export default function Home() {
   };
 
   const handleExperimentComplete = async (finalSelections: ConditionSelection[]) => {
-    if (!task || !startTime) return;
+    if (!currentTask || !startTime) return;
 
     const endTime = Date.now();
     const totalTimeSpent = Math.round((endTime - startTime) / 1000);
 
     const experimentData: ExperimentData = {
       participantId,
-      taskId: task.id,
+      taskId: currentTask?.id || '',
       conditionSelections: finalSelections,
       startTime: new Date(startTime).toISOString(),
       endTime: new Date(endTime).toISOString(),
@@ -572,7 +648,14 @@ export default function Home() {
     setParticipantId(newParticipantId);
     setPhase('consent');
     setConsentChecked(false);
-    setTask(null);
+    setSelectedThemes([]);
+    setTempSelectedThemes([]);
+    setTasksByCondition({
+      'A': null,
+      'B': null,
+      'C': null,
+      'Control': null,
+    });
     setCurrentConditionIndex(0);
     setCurrentModelIndex(0);
     setModelInteractions(new Set());
@@ -610,11 +693,28 @@ export default function Home() {
             <div className="info-box">
               <p><strong>What you will do:</strong></p>
               <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
-                <li>Complete an analysis task using 4 different AI models</li>
+                <li>Select one or more task themes that interest you</li>
+                <li>Complete an analysis task from your selected themes using 4 different AI models</li>
                 <li>Repeat this process across 4 different experimental conditions</li>
                 <li>Select your preferred model after each condition</li>
                 <li>All conditions use the same task, but with different information displayed</li>
               </ul>
+            </div>
+
+            <div className="info-box">
+              <p><strong>Available Task Themes:</strong></p>
+              <div style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '0.75rem' }}>
+                {TASK_THEMES.map((theme) => (
+                  <div key={theme.id} style={{ padding: '0.75rem', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+                    <p style={{ margin: 0, fontWeight: 600, color: '#333', fontSize: '0.95rem' }}>
+                      {theme.name}
+                    </p>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#666', lineHeight: '1.4' }}>
+                      {theme.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="info-box">
@@ -649,8 +749,109 @@ export default function Home() {
     );
   }
 
+  // Theme Selection Phase
+  if (phase === 'theme-selection') {
+    const toggleTheme = (themeId: string) => {
+      setTempSelectedThemes(prev => 
+        prev.includes(themeId) 
+          ? prev.filter(id => id !== themeId)
+          : [...prev, themeId]
+      );
+    };
+
+    return (
+      <main>
+        <div className="container">
+          <h1>Select Task Themes</h1>
+          <div className="theme-selection-section">
+            <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: '#333', lineHeight: '1.6' }}>
+              Please select one or more themes that interest you. A task will be assigned from your selected themes.
+            </p>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+              {TASK_THEMES.map((theme) => {
+                const isSelected = tempSelectedThemes.includes(theme.id);
+                const tasksInTheme = TASKS.filter(t => t.themeId === theme.id);
+                
+                return (
+                  <div
+                    key={theme.id}
+                    onClick={() => toggleTheme(theme.id)}
+                    style={{
+                      border: `2px solid ${isSelected ? '#4a90e2' : '#ddd'}`,
+                      borderRadius: '8px',
+                      padding: '1.5rem',
+                      cursor: 'pointer',
+                      backgroundColor: isSelected ? '#f0f7ff' : '#fff',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.borderColor = '#4a90e2';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) {
+                        e.currentTarget.style.borderColor = '#ddd';
+                      }
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleTheme(theme.id)}
+                        style={{ marginTop: '0.25rem', width: '20px', height: '20px', cursor: 'pointer' }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{ margin: 0, marginBottom: '0.5rem', color: '#333', fontSize: '1.25rem' }}>
+                          {theme.name}
+                        </h3>
+                        <p style={{ margin: 0, color: '#666', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                          {theme.description}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: '#888', fontWeight: 500 }}>
+                        Tasks in this theme ({tasksInTheme.length}):
+                      </p>
+                      <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.25rem', fontSize: '0.9rem', color: '#666' }}>
+                        {tasksInTheme.map(task => (
+                          <li key={task.id} style={{ marginBottom: '0.25rem' }}>
+                            {task.title}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div className="button-container">
+              <button
+                className="button"
+                onClick={() => handleThemeSelection(tempSelectedThemes)}
+                disabled={tempSelectedThemes.length === 0}
+                style={{
+                  opacity: tempSelectedThemes.length === 0 ? 0.5 : 1,
+                  cursor: tempSelectedThemes.length === 0 ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Continue with Selected Themes
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   // Task Introduction Phase
-  if (phase === 'task-intro' && task) {
+  if (phase === 'task-intro' && currentTask) {
     return (
       <main>
         <div className="container">
@@ -670,23 +871,23 @@ export default function Home() {
           
           <h1>Your Task</h1>
           <div className="task-intro">
-            <h2>{task.title}</h2>
+            <h2>{currentTask.title}</h2>
             <div className="task-description">
               <div style={{ marginBottom: '1.5rem', fontSize: '1.1rem', lineHeight: '1.6', color: '#333' }}>
-                {formatDescription(task.description.split('\n\n**Your task:**')[0])}
+                {formatDescription(currentTask.description.split('\n\n**Your task:**')[0])}
               </div>
               
-              {task.description.includes('**Your task:**') && (
+              {currentTask.description.includes('**Your task:**') && (
                 <div style={{ marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6', color: '#333' }}>
-                  {formatDescription('**Your task:**' + task.description.split('**Your task:**')[1])}
+                  {formatDescription('**Your task:**' + currentTask.description.split('**Your task:**')[1])}
                 </div>
               )}
               
-              <TaskDataTables taskId={task.id} />
+              <TaskDataTables taskId={currentTask.id} />
             </div>
             <div className="info-box" style={{ marginTop: '1.5rem' }}>
-              <p><strong>Important:</strong> You will complete this same task across 4 different conditions. 
-              In each condition, you'll try all 4 AI models and then select your preferred one.</p>
+              <p><strong>Important:</strong> You will complete this task for {getConditionDescription(currentCondition)}. 
+              In this condition, you'll try all 4 AI models and then select your preferred one.</p>
               <p style={{ marginTop: '0.75rem' }}><strong>How to interact:</strong> Review the data provided above, then ask questions about it in the chat. The AI will help you analyze, interpret, and draw insights from the data. You can ask multiple questions to explore different aspects of the task.</p>
               <p style={{ marginTop: '0.75rem' }}><strong>Important:</strong> To ensure fair comparison, please ask the same set of questions to each of the 4 AI models in this condition. This will help you evaluate which model performs best for your needs.</p>
             </div>
@@ -713,7 +914,7 @@ export default function Home() {
   }
 
   // Model Trial Phase
-  if (phase === 'model-trial' && currentCondition && currentModel && task) {
+  if (phase === 'model-trial' && currentCondition && currentModel && currentTask) {
     const hasInteracted = modelInteractions.has(currentModel.id);
     const progress = ((currentModelIndex + 1) / MODELS.length) * 100;
     const conditionProgress = ((currentConditionIndex + 1) / CONDITION_ORDER.length) * 100;
@@ -785,19 +986,19 @@ export default function Home() {
           </div>
 
           <div className="task-section">
-            <h2>Task: {task.title}</h2>
+            <h2>Task: {currentTask.title}</h2>
             <div className="task-description">
               <div style={{ marginBottom: '1.5rem', fontSize: '1.1rem', lineHeight: '1.6', color: '#333' }}>
-                {formatDescription(task.description.split('\n\n**Your task:**')[0])}
+                {formatDescription(currentTask.description.split('\n\n**Your task:**')[0])}
               </div>
               
-              {task.description.includes('**Your task:**') && (
+              {currentTask.description.includes('**Your task:**') && (
                 <div style={{ marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6', color: '#333' }}>
-                  {formatDescription('**Your task:**' + task.description.split('**Your task:**')[1])}
+                  {formatDescription('**Your task:**' + currentTask.description.split('**Your task:**')[1])}
                 </div>
               )}
               
-              <TaskDataTables taskId={task.id} />
+              <TaskDataTables taskId={currentTask.id} />
             </div>
           </div>
 
@@ -834,7 +1035,7 @@ export default function Home() {
               </div>
               
               {/* Sample Questions - always visible */}
-              {task && task.sampleQuestions && task.sampleQuestions.length > 0 && (
+              {currentTask && currentTask.sampleQuestions && currentTask.sampleQuestions.length > 0 && (
                 <div style={{ marginTop: '1.5rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
                   <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#555', marginBottom: '0.5rem', textAlign: 'left' }}>
                     Sample Questions:
@@ -843,10 +1044,16 @@ export default function Home() {
                     To ensure fair comparison, ask the same set of questions to each of the 4 AI models in this condition.
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {task.sampleQuestions.map((question, index) => (
+                    {currentTask.sampleQuestions.map((question, index) => (
                       <button
                         key={index}
-                        onClick={() => setInputMessage(question)}
+                        onClick={() => {
+                          setInputMessage(question);
+                          // Scroll to send button after a brief delay to ensure input is set
+                          setTimeout(() => {
+                            sendButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }, 100);
+                        }}
                         style={{
                           fontSize: '0.85rem',
                           padding: '0.5rem 0.75rem',
@@ -887,6 +1094,7 @@ export default function Home() {
                   disabled={isLoading}
                 />
                 <button 
+                  ref={sendButtonRef}
                   className="button send-button" 
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || isLoading}
@@ -992,7 +1200,7 @@ export default function Home() {
               </p>
               
               {/* Sample Questions */}
-              {task && task.sampleQuestions && task.sampleQuestions.length > 0 && (
+              {currentTask && currentTask.sampleQuestions && currentTask.sampleQuestions.length > 0 && (
                 <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
                   <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#555', marginBottom: '0.5rem', textAlign: 'left' }}>
                     Sample Questions:
@@ -1001,10 +1209,16 @@ export default function Home() {
                     To ensure fair comparison, ask the same set of questions to each of the 4 AI models in this condition.
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {task.sampleQuestions.map((question, index) => (
+                    {currentTask.sampleQuestions.map((question, index) => (
                       <button
                         key={index}
-                        onClick={() => setInputMessage(question)}
+                        onClick={() => {
+                          setInputMessage(question);
+                          // Scroll to send button after a brief delay to ensure input is set
+                          setTimeout(() => {
+                            sendButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }, 100);
+                        }}
                         style={{
                           fontSize: '0.85rem',
                           padding: '0.5rem 0.75rem',
@@ -1045,6 +1259,7 @@ export default function Home() {
                   disabled={isLoading}
                 />
                 <button 
+                  ref={sendButtonRef}
                   className="button send-button" 
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || isLoading}
@@ -1060,7 +1275,7 @@ export default function Home() {
   }
 
   // Model Selection Phase
-  if (phase === 'model-selection' && currentCondition && task) {
+  if (phase === 'model-selection' && currentCondition && currentTask) {
     const conditionProgress = ((currentConditionIndex + 1) / CONDITION_ORDER.length) * 100;
 
     return (

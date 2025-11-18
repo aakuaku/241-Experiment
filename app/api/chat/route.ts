@@ -275,15 +275,43 @@ export async function POST(req: NextRequest) {
           if (!process.env.OPENAI_API_KEY) {
             throw new Error('OpenAI API key not configured');
           }
-          const openaiResponse = await openai.chat.completions.create({
-            model: 'gpt-4o', // Using gpt-4o (GPT-4 Omni) which is the latest model
-            messages: [
-              { role: 'system', content: systemMessage },
-              ...conversationMessages,
-            ],
-            temperature: 0.7,
-          });
-          response = openaiResponse.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+          // Try latest model first, with fallback to previous version
+          const openaiModelsToTry = ['gpt-5.1', 'gpt-4o'];
+          let lastError: any = null;
+          
+          for (const modelName of openaiModelsToTry) {
+            try {
+              const openaiResponse = await openai.chat.completions.create({
+                model: modelName,
+                messages: [
+                  { role: 'system', content: systemMessage },
+                  ...conversationMessages,
+                ],
+                temperature: 0.7,
+              });
+              response = openaiResponse.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+              break; // Success, exit loop
+            } catch (err: any) {
+              lastError = err;
+              // If this is not a model-not-found error, try fallback
+              if (!err.message?.includes('not found') && !err.message?.includes('404') && !err.message?.includes('does not exist')) {
+                // For other errors (like quota, rate limit), try fallback
+                if (modelName === openaiModelsToTry[0]) {
+                  continue; // Try fallback model
+                }
+              }
+              // If we're on the last model or it's a model-not-found error, throw
+              if (modelName === openaiModelsToTry[openaiModelsToTry.length - 1]) {
+                throw err;
+              }
+              continue; // Try next model
+            }
+          }
+          
+          // If we get here and response is not set, all models failed
+          if (!response) {
+            throw lastError || new Error('Both GPT-5.1 and GPT-4o failed. Please check your API key and quota.');
+          }
         } catch (error: any) {
           console.error('OpenAI API error:', error);
           errorDetails = error.message || 'Unknown error';
@@ -300,15 +328,43 @@ export async function POST(req: NextRequest) {
             role: (msg.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
             content: msg.content,
           }));
-          const claudeResponse = await anthropic.messages.create({
-            model: 'claude-3-opus-20240229',
-            max_tokens: 1024,
-            system: systemMessage,
-            messages: anthropicMessages,
-          });
-          response = claudeResponse.content[0]?.type === 'text'
-            ? claudeResponse.content[0].text
-            : 'Sorry, I could not generate a response.';
+          // Try latest model first, with fallback to previous version
+          const claudeModelsToTry = ['claude-3-5-sonnet-20241022', 'claude-3-opus-20240229'];
+          let lastError: any = null;
+          
+          for (const modelName of claudeModelsToTry) {
+            try {
+              const claudeResponse = await anthropic.messages.create({
+                model: modelName,
+                max_tokens: 1024,
+                system: systemMessage,
+                messages: anthropicMessages,
+              });
+              response = claudeResponse.content[0]?.type === 'text'
+                ? claudeResponse.content[0].text
+                : 'Sorry, I could not generate a response.';
+              break; // Success, exit loop
+            } catch (err: any) {
+              lastError = err;
+              // If this is not a model-not-found error, try fallback
+              if (!err.message?.includes('not found') && !err.message?.includes('404') && !err.message?.includes('does not exist')) {
+                // For other errors (like quota, rate limit), try fallback
+                if (modelName === claudeModelsToTry[0]) {
+                  continue; // Try fallback model
+                }
+              }
+              // If we're on the last model or it's a model-not-found error, throw
+              if (modelName === claudeModelsToTry[claudeModelsToTry.length - 1]) {
+                throw err;
+              }
+              continue; // Try next model
+            }
+          }
+          
+          // If we get here and response is not set, all models failed
+          if (!response) {
+            throw lastError || new Error('Both Claude 3.5 Sonnet and Claude 3 Opus failed. Please check your API key and quota.');
+          }
         } catch (error: any) {
           console.error('Anthropic API error:', error);
           errorDetails = error.message || 'Unknown error';
@@ -329,11 +385,11 @@ export async function POST(req: NextRequest) {
           }
           fullPrompt += 'Assistant:';
           
-          // Try different model names in order - using newer Gemini 2.0 models
-          const modelsToTry = ['gemini-2.0-flash-exp', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro'];
+          // Use Gemini 2.5 Pro (latest), with Gemini 2.0 Flash as fallback
+          const geminiModelsToTry = ['gemini-2.5-pro', 'gemini-2.0-flash'];
           let lastError: any = null;
           
-          for (const modelName of modelsToTry) {
+          for (const modelName of geminiModelsToTry) {
             try {
               const geminiModel = geminiClient.getGenerativeModel({ model: modelName });
               const result = await geminiModel.generateContent(fullPrompt);
@@ -342,18 +398,24 @@ export async function POST(req: NextRequest) {
               break; // Success, exit loop
             } catch (err: any) {
               lastError = err;
-              // If this is not a model-not-found error, throw immediately
+              // If this is not a model-not-found error, try fallback
               if (!err.message?.includes('not found') && !err.message?.includes('404') && !err.message?.includes('is not found')) {
+                // For other errors (like quota, rate limit), try fallback
+                if (modelName === geminiModelsToTry[0]) {
+                  continue; // Try fallback model
+                }
+              }
+              // If we're on the last model or it's a model-not-found error, throw
+              if (modelName === geminiModelsToTry[geminiModelsToTry.length - 1]) {
                 throw err;
               }
-              // Otherwise, try next model
-              continue;
+              continue; // Try next model
             }
           }
           
           // If we get here and response is not set, all models failed
           if (!response) {
-            throw lastError || new Error('No available Gemini model found. Please check your API key has access to Gemini models.');
+            throw lastError || new Error('Both Gemini 2.5 Pro and Gemini 2.0 Flash failed. Please check your API key and quota.');
           }
         } catch (error: any) {
           console.error('Google Gemini API error:', error);
@@ -367,36 +429,75 @@ export async function POST(req: NextRequest) {
           if (!process.env.XAI_API_KEY) {
             throw new Error('xAI API key not configured');
           }
-          // Try the correct xAI API endpoint
-          const grokResponse = await fetch('https://api.x.ai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.XAI_API_KEY}`,
-            },
-            body: JSON.stringify({
-              model: 'grok-3',
-              messages: [
-                { role: 'system', content: systemMessage },
-                ...conversationMessages,
-              ],
-              temperature: 0.7,
-            }),
-          });
+          // Try latest model first, with fallback to previous version
+          const grokModelsToTry = ['grok-3', 'grok-2'];
+          let lastError: any = null;
           
-          if (!grokResponse.ok) {
-            const errorText = await grokResponse.text();
-            console.error('Grok API error response:', errorText);
-            throw new Error(`Grok API returned ${grokResponse.status}: ${errorText}`);
+          for (const modelName of grokModelsToTry) {
+            try {
+              const grokResponse = await fetch('https://api.x.ai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.XAI_API_KEY}`,
+                },
+                body: JSON.stringify({
+                  model: modelName,
+                  messages: [
+                    { role: 'system', content: systemMessage },
+                    ...conversationMessages,
+                  ],
+                  temperature: 0.7,
+                }),
+              });
+              
+              if (!grokResponse.ok) {
+                const errorText = await grokResponse.text();
+                // If it's a model-not-found error and not the last model, try fallback
+                if ((grokResponse.status === 404 || errorText.includes('not found')) && modelName !== grokModelsToTry[grokModelsToTry.length - 1]) {
+                  lastError = new Error(`Grok API returned ${grokResponse.status}: ${errorText}`);
+                  continue; // Try fallback model
+                }
+                console.error('Grok API error response:', errorText);
+                throw new Error(`Grok API returned ${grokResponse.status}: ${errorText}`);
+              }
+              
+              const grokData = await grokResponse.json();
+              
+              if (grokData.error) {
+                // If it's a model error and not the last model, try fallback
+                if (grokData.error.message?.includes('not found') && modelName !== grokModelsToTry[grokModelsToTry.length - 1]) {
+                  lastError = new Error(grokData.error.message || 'Grok API error');
+                  continue; // Try fallback model
+                }
+                throw new Error(grokData.error.message || 'Grok API error');
+              }
+              
+              response = grokData.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+              break; // Success, exit loop
+            } catch (err: any) {
+              lastError = err;
+              // If this is not the last model and it's a recoverable error, try fallback
+              if (modelName !== grokModelsToTry[grokModelsToTry.length - 1]) {
+                if (err.message?.includes('not found') || err.message?.includes('404')) {
+                  continue; // Try fallback model
+                }
+                // For other errors (like quota, rate limit), try fallback
+                if (modelName === grokModelsToTry[0]) {
+                  continue; // Try fallback model
+                }
+              }
+              // If we're on the last model, throw
+              if (modelName === grokModelsToTry[grokModelsToTry.length - 1]) {
+                throw err;
+              }
+            }
           }
           
-          const grokData = await grokResponse.json();
-          
-          if (grokData.error) {
-            throw new Error(grokData.error.message || 'Grok API error');
+          // If we get here and response is not set, all models failed
+          if (!response) {
+            throw lastError || new Error('Both Grok-3 and Grok-2 failed. Please check your API key and quota.');
           }
-          
-          response = grokData.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
         } catch (error: any) {
           console.error('Grok API error:', error);
           errorDetails = error.message || 'Unknown error';

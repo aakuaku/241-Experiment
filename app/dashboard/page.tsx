@@ -67,11 +67,7 @@ export default function Dashboard() {
   const [experiments, setExperiments] = useState<Experiment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchDashboardData();
-    fetchExperiments();
-  }, []);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
@@ -102,6 +98,28 @@ export default function Dashboard() {
       console.error('Error fetching experiments:', err);
     }
   };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('admin-authenticated');
+    setIsAuthenticated(false);
+    setDashboardData(null);
+    setExperiments([]);
+    // Redirect to login page
+    window.location.href = '/login';
+  };
+
+  useEffect(() => {
+    // Check if user is already authenticated
+    const authStatus = localStorage.getItem('admin-authenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+      fetchDashboardData();
+      fetchExperiments();
+    } else {
+      // Redirect to login page if not authenticated
+      window.location.href = '/login';
+    }
+  }, []);
 
   const getConditionName = (condition: string) => {
     switch (condition) {
@@ -140,6 +158,7 @@ export default function Dashboard() {
     }
     return `${hours.toFixed(1)}h`;
   };
+
 
   if (loading) {
     return (
@@ -245,7 +264,27 @@ export default function Dashboard() {
   return (
     <main>
       <div className="container">
-        <h1>Admin Dashboard</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h1 style={{ margin: 0 }}>Admin Dashboard</h1>
+          <button
+            onClick={handleSignOut}
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.9rem',
+              fontWeight: 500,
+              color: '#666',
+              background: '#f0f0f0',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s ease',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+          >
+            Sign Out
+          </button>
+        </div>
 
         {dashboardData && (
           <>
