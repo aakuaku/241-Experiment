@@ -19,6 +19,7 @@ import {
   getTasksByThemes,
   TASKS,
 } from '@/lib/experiment';
+import { TaskDataTables } from '@/components/TaskDataTables';
 
 type ExperimentPhase = 
   | 'consent'
@@ -881,11 +882,13 @@ export default function Home() {
                   {formatDescription('**Your task:**' + currentTask.description.split('**Your task:**')[1])}
                 </div>
               )}
+              
+              <TaskDataTables taskId={currentTask.id} />
             </div>
             <div className="info-box" style={{ marginTop: '1.5rem' }}>
               <p><strong>Important:</strong> You will complete this task for {getConditionDescription(currentCondition)}. 
               In this condition, you'll try all 4 AI models and then select your preferred one.</p>
-              <p style={{ marginTop: '0.75rem' }}><strong>How to interact:</strong> Ask short questions in the chat. The AI will help you analyze and draw insights. Keep your questions brief to finish quickly.</p>
+              <p style={{ marginTop: '0.75rem' }}><strong>How to interact:</strong> Review the data tables above, then ask short questions in the chat. The AI will help you analyze and draw insights. Keep your questions brief to finish quickly.</p>
               <p style={{ marginTop: '0.75rem' }}><strong>Important:</strong> To ensure fair comparison, please ask the same set of questions to each of the 4 AI models in this condition.</p>
             </div>
             <div className="info-box" style={{ marginTop: '1rem' }}>
@@ -994,6 +997,8 @@ export default function Home() {
                   {formatDescription('**Your task:**' + currentTask.description.split('**Your task:**')[1])}
                 </div>
               )}
+              
+              <TaskDataTables taskId={currentTask.id} />
             </div>
           </div>
 
