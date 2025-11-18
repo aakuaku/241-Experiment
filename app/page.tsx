@@ -19,7 +19,6 @@ import {
   getTasksByThemes,
   TASKS,
 } from '@/lib/experiment';
-import { TaskDataTables } from '@/components/TaskDataTables';
 
 type ExperimentPhase = 
   | 'consent'
@@ -687,17 +686,17 @@ export default function Home() {
             <h2>Research Consent</h2>
             <p>
               You are being invited to participate in a research study about decision-making 
-              when selecting AI models for analysis tasks. This experiment will take approximately 20-30 minutes.
+              when selecting AI models for analysis tasks. This experiment uses short questions and should take approximately 15-20 minutes.
             </p>
             
             <div className="info-box">
               <p><strong>What you will do:</strong></p>
               <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
                 <li>Select one or more task themes that interest you</li>
-                <li>Complete an analysis task from your selected themes using 4 different AI models</li>
+                <li>Ask short questions to 4 different AI models about a task</li>
+                <li>Rate each model and select your preferred one</li>
                 <li>Repeat this process across 4 different experimental conditions</li>
-                <li>Select your preferred model after each condition</li>
-                <li>All conditions use the same task, but with different information displayed</li>
+                <li><strong>Keep questions brief to finish quickly</strong></li>
               </ul>
             </div>
 
@@ -882,14 +881,12 @@ export default function Home() {
                   {formatDescription('**Your task:**' + currentTask.description.split('**Your task:**')[1])}
                 </div>
               )}
-              
-              <TaskDataTables taskId={currentTask.id} />
             </div>
             <div className="info-box" style={{ marginTop: '1.5rem' }}>
               <p><strong>Important:</strong> You will complete this task for {getConditionDescription(currentCondition)}. 
               In this condition, you'll try all 4 AI models and then select your preferred one.</p>
-              <p style={{ marginTop: '0.75rem' }}><strong>How to interact:</strong> Review the data provided above, then ask questions about it in the chat. The AI will help you analyze, interpret, and draw insights from the data. You can ask multiple questions to explore different aspects of the task.</p>
-              <p style={{ marginTop: '0.75rem' }}><strong>Important:</strong> To ensure fair comparison, please ask the same set of questions to each of the 4 AI models in this condition. This will help you evaluate which model performs best for your needs.</p>
+              <p style={{ marginTop: '0.75rem' }}><strong>How to interact:</strong> Ask short questions in the chat. The AI will help you analyze and draw insights. Keep your questions brief to finish quickly.</p>
+              <p style={{ marginTop: '0.75rem' }}><strong>Important:</strong> To ensure fair comparison, please ask the same set of questions to each of the 4 AI models in this condition.</p>
             </div>
             <div className="info-box" style={{ marginTop: '1rem' }}>
               <p><strong>Understanding Benchmark Scores:</strong></p>
@@ -997,8 +994,6 @@ export default function Home() {
                   {formatDescription('**Your task:**' + currentTask.description.split('**Your task:**')[1])}
                 </div>
               )}
-              
-              <TaskDataTables taskId={currentTask.id} />
             </div>
           </div>
 

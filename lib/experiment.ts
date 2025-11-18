@@ -146,15 +146,14 @@ export const TASK_THEMES: TaskTheme[] = [
 export const TASKS: Task[] = [
   {
     id: 'task-1',
-    title: 'Analyze Customer Feedback Data',
+    title: 'Analyze Customer Feedback',
     type: 'data-analysis',
     themeId: 'customer-product',
-    description: 'You have received customer feedback data from your product over the past month. The data includes sample feedback comments and overall statistics showing ratings distribution.\n\nReview the data in the tables below and use the AI assistant to ask questions that will help you: Identify patterns and themes in the feedback, understand what customers like most and least about the product, discover insights that could improve customer satisfaction. Ask multiple questions to explore different aspects of the data and get recommendations.',
+    description: 'You have customer feedback data from your product. Ask short questions to understand what customers like and dislike, and get quick recommendations.',
     sampleQuestions: [
-      'What are the most common themes in the negative feedback?',
-      'Which features received the most positive comments?',
-      'What patterns do you notice in the ratings distribution?',
-      'What recommendations would you give to improve customer satisfaction?'
+      'What are the main complaints?',
+      'What do customers like most?',
+      'How can we improve satisfaction?'
     ],
   },
   {
@@ -162,38 +161,35 @@ export const TASKS: Task[] = [
     title: 'Compare Marketing Strategies',
     type: 'comparison',
     themeId: 'business-strategy',
-    description: 'Your company is deciding between two marketing strategies for your next campaign. Both strategies have the same budget but different approaches, expected reach, and previous performance metrics.\n\nReview the strategy comparison table below and use the AI assistant to ask questions that will help you: Compare the strengths and weaknesses of each strategy, understand the trade-offs between short-term and long-term approaches, evaluate which strategy might be more effective for your goals. Ask questions to explore different factors and get recommendations based on your analysis.',
+    description: 'Choose between two marketing strategies with the same budget. Ask short questions to compare them and decide which is better.',
     sampleQuestions: [
-      'What are the key differences between these two marketing strategies?',
-      'Which strategy would be better for short-term sales growth?',
-      'What risks should we consider for each approach?',
-      'What factors should we prioritize in making this decision?'
+      'What are the main differences?',
+      'Which is better for short-term growth?',
+      'What are the risks?'
     ],
   },
   {
     id: 'task-3',
-    title: 'Interpret Market Research Results',
+    title: 'Interpret Market Research',
     type: 'interpretation',
     themeId: 'market-research',
-    description: 'A market research study has been conducted on consumer preferences for eco-friendly products. The research reveals interesting patterns between what people say they prefer versus what they actually purchase.\n\nReview the data tables below showing preference vs. behavior gaps and income factors. Use the AI assistant to ask questions that will help you: Understand why there\'s a gap between stated preferences and actual behavior, identify factors that explain demographic differences, discover implications for businesses trying to promote eco-friendly products. Ask multiple questions to explore different aspects of this data and uncover insights.',
+    description: 'Research shows people say they prefer eco-friendly products but don\'t always buy them. Ask short questions to understand why and what businesses can do.',
     sampleQuestions: [
-      'Why do you think there\'s a gap between what people say they prefer and what they actually buy?',
-      'How does income level affect purchasing behavior?',
-      'What might explain the differences across age groups?',
-      'What strategies could businesses use to bridge this gap?'
+      'Why is there a gap between preference and purchase?',
+      'How does income affect buying behavior?',
+      'What can businesses do about this?'
     ],
   },
   {
     id: 'task-4',
-    title: 'Synthesize Multiple Data Sources',
+    title: 'Market Expansion Decision',
     type: 'synthesis',
     themeId: 'business-strategy',
-    description: 'You need to make a decision about expanding your business to a new market. You have access to multiple data sources including sales data from similar launches, economic indicators, competitor analysis, and internal capacity information.\n\nReview the data tables below showing market comparisons and economic indicators. Use the AI assistant to ask questions that will help you: Identify key factors that should influence your expansion decision, weigh the risks and opportunities from different perspectives, synthesize information from multiple sources to make an informed recommendation. Ask questions to explore different aspects of the data and get guidance on your decision.',
+    description: 'Decide whether to expand to a new market. Ask short questions about risks, opportunities, and key factors.',
     sampleQuestions: [
-      'What are the most important factors to consider for market expansion?',
-      'What risks should we be most concerned about?',
-      'How do the economic indicators compare across markets?',
-      'What recommendation would you make based on all this data?'
+      'What are the main risks?',
+      'What are the opportunities?',
+      'Should we expand?'
     ],
   },
   {
@@ -201,25 +197,23 @@ export const TASKS: Task[] = [
     title: 'Evaluate Business Proposal',
     type: 'evaluation',
     themeId: 'business-strategy',
-    description: 'A startup has pitched a business idea to you seeking investment. The proposal includes details about their product concept, market size claims, business model, competitive landscape, and funding requirements.\n\nReview the proposal summary table below. Use the AI assistant to ask questions that will help you: Analyze the strengths and weaknesses of the business idea, assess the feasibility and market potential, identify potential risks and concerns, develop your overall assessment and recommendation. Ask questions to explore different aspects of the proposal and get guidance on your evaluation.',
+    description: 'A startup wants investment. Ask short questions to evaluate the proposal and decide if you should invest.',
     sampleQuestions: [
-      'What are the strongest aspects of this business proposal?',
-      'What concerns or risks should I be aware of?',
-      'Does the market size claim seem realistic?',
-      'What questions should I ask the founders before investing?'
+      'What are the strengths?',
+      'What are the risks?',
+      'Should I invest?'
     ],
   },
   {
     id: 'task-6',
-    title: 'Analyze User Behavior Patterns',
+    title: 'Analyze User Behavior',
     type: 'data-analysis',
     themeId: 'customer-product',
-    description: 'You have user behavior data from your website. A recent change was made to the checkout process, and you\'ve noticed some interesting patterns in the metrics - some improved while others declined.\n\nReview the website metrics comparison and device breakdown tables below. Use the AI assistant to ask questions that will help you: Understand what might be causing these changes, identify concerning trends or patterns, discover insights about user behavior across different devices, get suggestions on how to improve the situation. Ask multiple questions to thoroughly analyze the data and find actionable insights.',
+    description: 'Your website checkout was updated. Some metrics improved, others declined. Ask short questions to understand why and how to fix it.',
     sampleQuestions: [
-      'What might explain the changes in conversion rate after the checkout update?',
-      'Are there differences in behavior across device types?',
-      'What trends in the data are concerning?',
-      'What changes would you recommend to improve the metrics?'
+      'Why did conversion rate change?',
+      'Are there device differences?',
+      'How can we improve?'
     ],
   },
   {
@@ -227,64 +221,59 @@ export const TASKS: Task[] = [
     title: 'Compare Product Features',
     type: 'comparison',
     themeId: 'customer-product',
-    description: 'Your team is deciding between two feature additions for your product. Each feature has different development requirements, expected adoption rates, costs, and strategic value.\n\nReview the feature comparison table below. Use the AI assistant to ask questions that will help you: Compare the trade-offs between development time and adoption, evaluate the strategic value and competitive advantage of each, analyze which feature might provide better ROI, make a recommendation on which to prioritize. Ask questions to explore different factors and get guidance on your decision.',
+    description: 'Choose between two new features for your product. Ask short questions to compare them and decide which to build first.',
     sampleQuestions: [
-      'What are the main trade-offs between these two features?',
-      'Which feature would provide better return on investment?',
-      'How important is the development time vs. expected adoption?',
-      'What would you recommend prioritizing and why?'
+      'What are the trade-offs?',
+      'Which has better ROI?',
+      'Which should we prioritize?'
     ],
   },
   {
     id: 'task-8',
-    title: 'Interpret Survey Results',
+    title: 'Interpret Employee Survey',
     type: 'interpretation',
     themeId: 'organizational',
-    description: 'A survey was conducted among employees about work-life balance, and separate productivity metrics were collected. The results show interesting patterns regarding satisfaction, work arrangements, and performance.\n\nReview the survey results and productivity metrics tables below. Use the AI assistant to ask questions that will help you: Explain what the data reveals about employee preferences and satisfaction, identify contradictions or surprising findings, understand the relationship between work arrangements and productivity, suggest actions the organization might consider. Ask multiple questions to thoroughly interpret the results and discover insights.',
+    description: 'Employee survey shows patterns about work arrangements and satisfaction. Ask short questions to understand the results and what to do.',
     sampleQuestions: [
-      'What patterns do you see between work arrangements and satisfaction?',
-      'Are there any surprising findings in this data?',
-      'How does productivity relate to work-life balance satisfaction?',
-      'What actions should the organization consider based on these results?'
+      'What patterns do you see?',
+      'What\'s surprising?',
+      'What should we do?'
     ],
   },
   {
     id: 'task-9',
-    title: 'Cloud Computing Investment',
+    title: 'Choose Cloud Platform',
     type: 'evaluation',
     themeId: 'technology',
-    description: 'You need to make an investment decision about which cloud platform to adopt for your organization. Based on current market share data, pricing trends, and enterprise adoption rates, which cloud platform (AWS, Azure, Google Cloud) offers the best long-term investment opportunity?\n\nReview the data tables below showing market share, pricing trends, and adoption rates. Use the AI assistant to ask questions that will help you: Compare the technical capabilities of each platform, analyze financial performance and pricing models, evaluate enterprise adoption trends and market position, assess long-term investment potential and strategic value. Support your analysis with technical capabilities and financial performance data to make an informed recommendation.',
+    description: 'Decide which cloud platform (AWS, Azure, Google Cloud) to use. Ask short questions to compare and choose the best option.',
     sampleQuestions: [
-      'What are the key technical differences between AWS, Azure, and Google Cloud?',
-      'How do the pricing models compare across the three platforms?',
-      'What does the market share data tell us about enterprise adoption trends?',
-      'Which platform offers the best long-term investment opportunity and why?'
+      'What are the key differences?',
+      'Which is most cost-effective?',
+      'Which should we choose?'
     ],
   },
   {
     id: 'task-10',
-    title: 'Single-Payer Healthcare',
+    title: 'Single-Payer Healthcare Analysis',
     type: 'evaluation',
     themeId: 'politics',
-    description: 'You are analyzing whether a single-payer healthcare system would reduce overall costs for American families compared to the current system. This is a complex policy question that requires examining multiple factors including costs, quality, and international comparisons.\n\nReview the data tables below showing healthcare costs, administrative expenses, and international comparisons. Use the AI assistant to ask questions that will help you: Compare costs between single-payer and current systems, analyze administrative cost differences, evaluate care quality metrics from international examples, assess economic projections and potential savings. Present your argument with comparative international data, economic projections, and evidence on administrative costs and care quality.',
+    description: 'Would single-payer healthcare reduce costs for families? Ask short questions to compare costs and quality.',
     sampleQuestions: [
-      'How do healthcare costs compare between single-payer systems and the current US system?',
-      'What do international examples tell us about administrative costs in single-payer systems?',
-      'How does care quality in single-payer systems compare to the current US system?',
-      'What are the economic projections for cost savings under a single-payer system?'
+      'How do costs compare?',
+      'What about quality?',
+      'Would it save money?'
     ],
   },
   {
     id: 'task-11',
-    title: 'Cryptocurrency Portfolio Allocation',
+    title: 'Cryptocurrency Investment Decision',
     type: 'evaluation',
     themeId: 'finance',
-    description: 'You are evaluating whether traditional investment portfolios should include cryptocurrency exposure in 2025. This decision requires careful analysis of regulatory developments, institutional adoption, risk-adjusted returns, and correlation with traditional assets.\n\nReview the data tables below showing cryptocurrency performance, regulatory developments, and institutional adoption trends. Use the AI assistant to ask questions that will help you: Analyze risk-adjusted returns compared to traditional assets, evaluate correlation patterns with stocks and bonds, assess regulatory developments and their impact, examine institutional adoption trends and market maturity. Based on regulatory developments and institutional adoption, provide data-driven allocation recommendations for portfolio inclusion.',
+    description: 'Should portfolios include cryptocurrency in 2025? Ask short questions about risks, returns, and allocation.',
     sampleQuestions: [
-      'How do cryptocurrency risk-adjusted returns compare to traditional asset classes?',
-      'What is the correlation between cryptocurrencies and traditional assets like stocks and bonds?',
-      'How have recent regulatory developments affected cryptocurrency investment viability?',
-      'What allocation percentage would you recommend for cryptocurrency in a traditional portfolio?'
+      'How do returns compare to stocks?',
+      'What are the risks?',
+      'What percentage should we allocate?'
     ],
   },
 ];
