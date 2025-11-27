@@ -489,7 +489,21 @@ export default function Dashboard() {
 
         {/* Individual Experiments */}
         <div className="dashboard-section" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <h2>All Experiments</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ margin: 0 }}>All Experiments</h2>
+            <Link href="/dashboard/analytics" style={{ 
+              color: '#4a90e2', 
+              textDecoration: 'none',
+              fontSize: '0.9rem',
+              fontWeight: 500,
+              padding: '0.5rem 1rem',
+              background: '#f0f7ff',
+              border: '1px solid #4a90e2',
+              borderRadius: '6px',
+            }}>
+              View Analytics
+            </Link>
+          </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             <table className="dashboard-table">
               <thead>

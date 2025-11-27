@@ -90,6 +90,50 @@ export async function GET() {
       ORDER BY mr.condition
     `);
 
+    // Get experiments over time (daily aggregation)
+    const experimentsOverTimeQuery = await pool.query(`
+      SELECT 
+        DATE(created_at) as date,
+        COUNT(*) as count
+      FROM experiments
+      GROUP BY DATE(created_at)
+      ORDER BY DATE(created_at) ASC
+    `);
+
+    // Get model selections over time (daily aggregation)
+    const selectionsOverTimeQuery = await pool.query(`
+      SELECT 
+        DATE(cs.created_at) as date,
+        COALESCE(cs.real_model_id, cs.selected_model) as model_id,
+        COUNT(*) as count
+      FROM condition_selections cs
+      GROUP BY DATE(cs.created_at), COALESCE(cs.real_model_id, cs.selected_model)
+      ORDER BY DATE(cs.created_at) ASC, count DESC
+    `);
+
+    // Get average ratings over time (daily aggregation)
+    const ratingsOverTimeQuery = await pool.query(`
+      SELECT 
+        DATE(mr.timestamp) as date,
+        mr.model_id,
+        AVG(mr.rating) as avg_rating,
+        COUNT(*) as count
+      FROM model_ratings mr
+      GROUP BY DATE(mr.timestamp), mr.model_id
+      ORDER BY DATE(mr.timestamp) ASC
+    `);
+
+    // Get condition selections over time (daily aggregation)
+    const conditionSelectionsOverTimeQuery = await pool.query(`
+      SELECT 
+        DATE(cs.created_at) as date,
+        cs.condition,
+        COUNT(*) as count
+      FROM condition_selections cs
+      GROUP BY DATE(cs.created_at), cs.condition
+      ORDER BY DATE(cs.created_at) ASC
+    `);
+
     return NextResponse.json({
       summary: summaryQuery.rows[0],
       conditionDistribution: conditionQuery.rows,
@@ -98,6 +142,10 @@ export async function GET() {
       selectionsByCondition: selectionsByConditionQuery.rows,
       modelRatings: modelRatingsQuery.rows,
       conditionRatings: conditionRatingsQuery.rows,
+      experimentsOverTime: experimentsOverTimeQuery.rows,
+      selectionsOverTime: selectionsOverTimeQuery.rows,
+      ratingsOverTime: ratingsOverTimeQuery.rows,
+      conditionSelectionsOverTime: conditionSelectionsOverTimeQuery.rows,
     }, { status: 200 });
   } catch (error: any) {
     console.error('Error fetching dashboard data:', error);
