@@ -333,11 +333,84 @@ export function getConditionDescription(condition: TreatmentCondition): string {
     case 'C':
       return 'Condition 3: Anonymous Brand + Benchmark Scores';
     case 'Control':
-      return 'Condition 4: Anonymous Brand, No Benchmarks (Control)';
+      return 'Condition 4: Anonymous Brand, No Benchmarks';
   }
 }
 
 // Get condition number for progress tracking
 export function getConditionNumber(condition: TreatmentCondition): number {
   return CONDITION_ORDER.indexOf(condition) + 1;
+}
+
+// Generate gamified introduction for a model based on its benchmarks
+export function getModelIntroduction(model: ModelData, condition: TreatmentCondition): string {
+  const displayName = getModelDisplayName(model, condition);
+  const showBenchmarks = shouldShowBenchmarks(condition);
+  
+  // If benchmarks should be shown, include them
+  if (showBenchmarks) {
+    const mmlu = model.benchmarks.mmlu;
+    const codeEval = model.benchmarks.codeEval;
+    const humanEval = model.benchmarks.humanEval;
+    const isAnonymousBrand = condition === 'C' || condition === 'Control';
+    
+    // Create friendly descriptions based on scores
+    const getKnowledgeLevel = (score: number) => {
+      if (score >= 88) return "exceptional";
+      if (score >= 85) return "strong";
+      if (score >= 80) return "solid";
+      return "good";
+    };
+    
+    const getReasoningLevel = (score: number) => {
+      if (score >= 88) return "excellent";
+      if (score >= 85) return "strong";
+      if (score >= 80) return "solid";
+      return "good";
+    };
+    
+    const knowledgeLevel = getKnowledgeLevel(mmlu);
+    const reasoningLevel = getReasoningLevel(codeEval);
+    const analysisLevel = humanEval ? getReasoningLevel(humanEval) : null;
+    
+    let intro = `Hey! I'm ${displayName}`;
+    if (isAnonymousBrand) {
+      intro += ` - I have no brand name shown here, but I am good!`;
+    }
+    intro += ` I have ${knowledgeLevel} general knowledge - <strong>${mmlu}%</strong> on Massive Multitask Language Understanding, that's across 57 subjects like math, science, and history! `;
+    intro += `I also have ${reasoningLevel} problem-solving skills - <strong>${codeEval}%</strong> on Code Evaluation.`;
+    
+    if (analysisLevel && humanEval) {
+      intro += ` Plus, my analytical thinking scores <strong>${humanEval}%</strong> on Human Evaluation.`;
+    }
+    
+    intro += ` Ready to help you with your task!`;
+    
+    return intro;
+  }
+  
+  // For models without benchmarks, create a fun, mysterious introduction
+  const isAnonymousBrand = condition === 'C' || condition === 'Control';
+  const hasNoBenchmarks = !showBenchmarks;
+  
+  // Build context about what's not shown
+  let contextNote = '';
+  if (isAnonymousBrand && hasNoBenchmarks) {
+    contextNote = 'I have no brand name or benchmark scores shown here, but I am good! ';
+  } else if (isAnonymousBrand) {
+    contextNote = 'I have no brand name shown here, but I am good! ';
+  } else if (hasNoBenchmarks) {
+    contextNote = 'I have no benchmark scores shown here, but I am good! ';
+  }
+  
+  const funIntros = [
+    `Hey there! I'm ${displayName}! ${contextNote}I'm here to help you tackle this task with my problem-solving skills and analytical thinking. Let's see what I can do for you!`,
+    `Hello! I'm ${displayName}! ${contextNote}Ready to dive into this challenge with you! I bring my own unique approach to problem-solving and analysis. Let's get started!`,
+    `Hi! I'm ${displayName}! ${contextNote}I'm excited to work with you on this task. I've got some tricks up my sleeve when it comes to analysis and reasoning. Ready when you are!`,
+    `Hey! I'm ${displayName}! ${contextNote}I love tackling complex problems and finding creative solutions. I'm all set to help you with this task - let's make it happen!`
+  ];
+  
+  // Use model ID to consistently assign the same intro to the same model
+  const modelIndex = MODELS.findIndex(m => m.id === model.id);
+  return funIntros[modelIndex % funIntros.length];
 }

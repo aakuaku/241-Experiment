@@ -18,6 +18,7 @@ import {
   TaskTheme,
   getTasksByThemes,
   TASKS,
+  getModelIntroduction,
 } from '@/lib/experiment';
 import { TaskDataTables } from '@/components/TaskDataTables';
 
@@ -344,6 +345,11 @@ export default function Home() {
     setCurrentModelIndex(0);
     setMessages([]);
     setInputMessage('');
+    
+    // Scroll to top when starting model trial
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   const handleSendMessage = async () => {
@@ -483,9 +489,18 @@ export default function Home() {
         textareaRef.current.style.height = 'auto';
         textareaRef.current.style.height = '80px';
       }
+      
+      // Scroll to top when progressing to next model
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     } else {
       // All models tried, move to selection
       setPhase('model-selection');
+      // Scroll to top when moving to selection phase
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     }
   };
   
@@ -517,6 +532,11 @@ export default function Home() {
         textareaRef.current.style.height = 'auto';
         textareaRef.current.style.height = '80px';
       }
+      
+      // Scroll to top when progressing to next model
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     }
   };
   
@@ -542,6 +562,11 @@ export default function Home() {
         textareaRef.current.style.height = 'auto';
         textareaRef.current.style.height = '80px';
       }
+      
+      // Scroll to top when progressing to next condition
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     }
   };
 
@@ -953,35 +978,24 @@ export default function Home() {
             <h1>Trying Model {currentModelIndex + 1} of {MODELS.length}</h1>
             <div className="model-card-large">
               <div className="model-title-large"><span className="model-badge">{currentModelDisplayName}</span></div>
-              {showBenchmarks && (
-                <>
-                  <div className="benchmarks">
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#666' }}>Benchmark Scores</span>
-                    </div>
-                    <div className="benchmark-item">
-                      <span className="benchmark-initial">• MMLU:</span>
-                      <span className="benchmark-value">{currentModel.benchmarks.mmlu}%</span>
-                      <span className="benchmark-separator">-</span>
-                      <span className="benchmark-label">General knowledge across 57 subjects (math, science, history, etc.) - indicates analytical ability</span>
-                    </div>
-                    <div className="benchmark-item">
-                      <span className="benchmark-initial">• CodeEval:</span>
-                      <span className="benchmark-value">{currentModel.benchmarks.codeEval}%</span>
-                      <span className="benchmark-separator">-</span>
-                      <span className="benchmark-label">Problem-solving and logical reasoning ability</span>
-                    </div>
-                    {currentModel.benchmarks.humanEval && (
-                      <div className="benchmark-item">
-                        <span className="benchmark-initial">• HumanEval:</span>
-                        <span className="benchmark-value">{currentModel.benchmarks.humanEval}%</span>
-                        <span className="benchmark-separator">-</span>
-                        <span className="benchmark-label">Analytical thinking and solution quality</span>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
+              <div style={{
+                marginTop: '1.5rem',
+                padding: '1.5rem',
+                backgroundColor: showBenchmarks ? '#f0f7ff' : '#fff4e6',
+                borderRadius: '12px',
+                border: `2px solid ${showBenchmarks ? '#4a90e2' : '#ffa726'}`,
+                boxShadow: `0 2px 8px rgba(${showBenchmarks ? '74, 144, 226' : '255, 167, 38'}, 0.1)`
+              }}>
+                <div 
+                  style={{
+                    fontSize: '1.1rem',
+                    lineHeight: '1.8',
+                    color: '#333',
+                    fontStyle: 'italic'
+                  }}
+                  dangerouslySetInnerHTML={{ __html: getModelIntroduction(currentModel, currentCondition) }}
+                />
+              </div>
             </div>
           </div>
 
@@ -1310,10 +1324,14 @@ export default function Home() {
           </p>
 
           <div className="models-grid">
-            {MODELS.map((model) => {
+            {MODELS.map((model, modelIndex) => {
               const displayName = getModelDisplayName(model, currentCondition);
               const showBenchmarksForModel = shouldShowBenchmarks(currentCondition);
               const isSelected = selectedModel === model.id;
+              
+              // Get the rating for this model in the current condition
+              const ratingKey = getConversationKey(currentConditionIndex, modelIndex);
+              const modelRating = ratings[ratingKey];
 
               return (
                 <div
@@ -1322,6 +1340,55 @@ export default function Home() {
                   onClick={() => handleModelSelect(model.id)}
                 >
                   <div className="model-title">{displayName}</div>
+                  
+                  {/* Display rating if available */}
+                  {modelRating && (
+                    <div style={{ 
+                      marginTop: '0.75rem', 
+                      marginBottom: showBenchmarksForModel ? '0.75rem' : '0',
+                      padding: '0.75rem',
+                      backgroundColor: '#f0f7ff',
+                      borderRadius: '6px',
+                      border: '1px solid #d0e5ff'
+                    }}>
+                      <div style={{ 
+                        fontSize: '0.9rem', 
+                        fontWeight: 600, 
+                        color: '#333', 
+                        marginBottom: '0.5rem',
+                        textAlign: 'center'
+                      }}>
+                        Your Rating
+                      </div>
+                      <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        marginBottom: '0.25rem'
+                      }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            style={{
+                              fontSize: '1.25rem',
+                              color: star <= modelRating ? '#ffc107' : '#ddd',
+                            }}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <div style={{ 
+                        textAlign: 'center', 
+                        fontSize: '0.85rem', 
+                        color: '#666',
+                        fontWeight: 500
+                      }}>
+                        {modelRating}/5
+                      </div>
+                    </div>
+                  )}
                   
                   {showBenchmarksForModel && (
                     <div className="benchmarks">

@@ -13,7 +13,7 @@ export async function GET() {
     // Get summary statistics
     const summaryQuery = await pool.query(`
       SELECT 
-        COUNT(DISTINCT e.id) as total_participants,
+        COUNT(DISTINCT e.participant_id) as total_participants,
         COUNT(cs.id) as total_selections,
         COUNT(DISTINCT e.task_id) as unique_tasks,
         AVG(e.total_time_spent) as avg_time_spent

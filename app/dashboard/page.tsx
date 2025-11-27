@@ -262,28 +262,38 @@ export default function Dashboard() {
   }
 
   return (
-    <main>
-      <div className="container">
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div className="container" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h1 style={{ margin: 0 }}>Admin Dashboard</h1>
-          <button
-            onClick={handleSignOut}
-            style={{
-              padding: '0.5rem 1rem',
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <Link href="/" style={{ 
+              color: '#4a90e2', 
+              textDecoration: 'none',
               fontSize: '0.9rem',
               fontWeight: 500,
-              color: '#666',
-              background: '#f0f0f0',
-              border: '1px solid #ddd',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s ease',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-          >
-            Sign Out
-          </button>
+            }}>
+              ← Back to Experiment
+            </Link>
+            <button
+              onClick={handleSignOut}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.9rem',
+                fontWeight: 500,
+                color: '#666',
+                background: '#f0f0f0',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
 
         {dashboardData && (
@@ -478,9 +488,9 @@ export default function Dashboard() {
         )}
 
         {/* Individual Experiments */}
-        <div className="dashboard-section">
+        <div className="dashboard-section" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <h2>All Experiments</h2>
-          <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
             <table className="dashboard-table">
               <thead>
                 <tr>
@@ -510,12 +520,6 @@ export default function Dashboard() {
               </tbody>
             </table>
           </div>
-        </div>
-
-        <div style={{ marginTop: '2rem' }}>
-          <Link href="/" style={{ color: '#4a90e2', textDecoration: 'none' }}>
-            ← Back to Experiment
-          </Link>
         </div>
       </div>
     </main>
