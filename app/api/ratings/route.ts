@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+// Force dynamic rendering to prevent caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(request: NextRequest) {
   try {
     const { participantId, condition, modelId, rating, taskId, startTime } = await request.json();
@@ -109,7 +113,14 @@ export async function GET(request: NextRequest) {
 
     const result = await pool.query(query, params);
 
-    return NextResponse.json({ ratings: result.rows });
+    const response = NextResponse.json({ ratings: result.rows });
+    
+    // Prevent caching to ensure fresh data
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
   } catch (error: any) {
     console.error('Error fetching ratings:', error);
     return NextResponse.json(

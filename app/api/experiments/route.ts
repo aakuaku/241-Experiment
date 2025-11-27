@@ -2,6 +2,10 @@ import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { ExperimentData } from '@/lib/experiment';
 
+// Force dynamic rendering to prevent caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(request: NextRequest) {
   try {
     const data: ExperimentData = await request.json();
@@ -158,7 +162,14 @@ export async function GET(request: NextRequest) {
 
     const result = await pool.query(query, params);
 
-    return NextResponse.json(result.rows, { status: 200 });
+    const response = NextResponse.json(result.rows, { status: 200 });
+    
+    // Prevent caching to ensure fresh data
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
   } catch (error: any) {
     console.error('Error fetching experiment data:', error);
     return NextResponse.json(

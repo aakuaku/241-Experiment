@@ -95,7 +95,12 @@ export default function Dashboard() {
 
   const fetchExperiments = async () => {
     try {
-      const response = await fetch('/api/experiments');
+      const response = await fetch('/api/experiments', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
       if (!response.ok) throw new Error('Failed to fetch experiments');
       const data = await response.json();
       setExperiments(data);
