@@ -1,6 +1,10 @@
 import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic rendering to prevent caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     // Check if database is available
@@ -134,7 +138,7 @@ export async function GET() {
       ORDER BY DATE(cs.created_at) ASC
     `);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       summary: summaryQuery.rows[0],
       conditionDistribution: conditionQuery.rows,
       modelDistribution: modelQuery.rows,
@@ -147,6 +151,13 @@ export async function GET() {
       ratingsOverTime: ratingsOverTimeQuery.rows,
       conditionSelectionsOverTime: conditionSelectionsOverTimeQuery.rows,
     }, { status: 200 });
+
+    // Prevent caching to ensure fresh data
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
   } catch (error: any) {
     console.error('Error fetching dashboard data:', error);
     return NextResponse.json(
