@@ -1085,6 +1085,46 @@ export default function Analytics() {
               </div>
             </div>
           </div>
+
+          {/* Causal Identification Framework */}
+          <div style={{ 
+            backgroundColor: '#f8fafc', 
+            padding: '1.5rem', 
+            borderRadius: '8px',
+            marginTop: '1.5rem',
+            border: '1px solid #e2e8f0'
+          }}>
+            <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>Causal Identification & Interpretation (Potential Outcomes Framework)</h4>
+            <div style={{ color: '#475569', lineHeight: 1.8 }}>
+              <p style={{ marginBottom: '1rem' }}>
+                <strong>Research Question:</strong> Do people choose AI models based on <em>brand recognition</em> or <em>objective performance metrics</em>?
+              </p>
+              <p style={{ marginBottom: '1rem' }}>
+                <strong>Identification Strategy:</strong> This within-subjects design exposes each participant to all four treatment combinations 
+                in a fixed order (B → A → C → Control). While this controls for individual-level confounders, 
+                potential order/carryover effects should be considered when interpreting results. 
+                The factorial design enables estimation of main effects and interactions.
+              </p>
+              <p style={{ marginBottom: '1rem' }}>
+                <strong>Estimand Definitions:</strong>
+              </p>
+              <ul style={{ margin: '0 0 1rem 0', paddingLeft: '1.2rem' }}>
+                <li><strong>τ<sub>brand</sub></strong> = E[Y<sub>i</sub>(brand=1) - Y<sub>i</sub>(brand=0)] — Average effect of revealing brand identity</li>
+                <li><strong>τ<sub>bench</sub></strong> = E[Y<sub>i</sub>(bench=1) - Y<sub>i</sub>(bench=0)] — Average effect of showing performance metrics</li>
+                <li><strong>τ<sub>interaction</sub></strong> = (τ<sub>brand|bench=1</sub> - τ<sub>brand|bench=0</sub>) — Effect modification test</li>
+              </ul>
+              <p style={{ marginBottom: '1rem' }}>
+                <strong>Interpreting Results:</strong>
+              </p>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                <li>If <strong>τ̂<sub>brand</sub> &gt; 0</strong>: Brand visibility <em>increases</em> selection probability (brand-driven behavior)</li>
+                <li>If <strong>τ̂<sub>brand</sub> &lt; 0</strong>: Brand visibility <em>decreases</em> selection (brand aversion or competitor preference)</li>
+                <li>If <strong>τ̂<sub>bench</sub> ≠ 0</strong>: Performance information causally influences choice (rational decision-making)</li>
+                <li>If <strong>τ̂<sub>interaction</sub> ≠ 0</strong>: Treatment effects are heterogeneous — brand effect depends on benchmark presence</li>
+                <li>If all effects ≈ 0: Selection appears random or driven by unobserved factors (e.g., UI position)</li>
+              </ul>
+            </div>
+          </div>
         </section>
 
         {/* Average Treatment Effects */}
@@ -1105,8 +1145,8 @@ export default function Analytics() {
           </p>
 
           {/* Model Selector */}
-          <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <label style={{ fontWeight: 500, color: '#374151' }}>Select Model for Detailed ATE:</label>
+          <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', flexWrap: 'wrap' }}>
+            <label style={{ fontWeight: 500, color: '#374151' }}>Select Model:</label>
             <Select.Root value={selectedModel} onValueChange={setSelectedModel}>
               <Select.Trigger
                 style={{
@@ -1179,6 +1219,9 @@ export default function Analytics() {
                 </Select.Content>
               </Select.Portal>
             </Select.Root>
+            <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
+              (Cards below show effects for the selected model)
+            </span>
           </div>
 
           {/* Detailed ATE for Selected Model */}
@@ -1351,6 +1394,178 @@ export default function Analytics() {
           </div>
         </section>
 
+        {/* Summary & Key Findings */}
+        <section style={{ 
+          backgroundColor: 'white', 
+          borderRadius: '12px', 
+          padding: '2rem', 
+          marginBottom: '2rem',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
+            Summary & Key Findings
+          </h2>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div style={{ backgroundColor: '#f0f9ff', padding: '1.5rem', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#0369a1' }}>
+                {dashboardData.summary.total_participants}
+              </div>
+              <div style={{ color: '#0c4a6e', fontWeight: 500 }}>Total Participants</div>
+            </div>
+            <div style={{ backgroundColor: '#f0fdf4', padding: '1.5rem', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#15803d' }}>
+                {dashboardData.summary.total_selections}
+              </div>
+              <div style={{ color: '#14532d', fontWeight: 500 }}>Total Selections</div>
+            </div>
+            <div style={{ backgroundColor: '#fef3c7', padding: '1.5rem', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#b45309' }}>
+                4
+              </div>
+              <div style={{ color: '#78350f', fontWeight: 500 }}>Conditions (2x2)</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+            <div style={{ 
+              backgroundColor: '#f8fafc', 
+              padding: '1.5rem', 
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0'
+            }}>
+              <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>How to Interpret Treatment Effects</h4>
+              <div style={{ color: '#475569', lineHeight: 1.8, fontSize: '0.9rem' }}>
+                <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                  <li><strong>Brand Effect &gt; 0</strong>: Real brand names <em>increase</em> selection</li>
+                  <li><strong>Brand Effect &lt; 0</strong>: Real brand names <em>decrease</em> selection</li>
+                  <li><strong>Benchmark Effect &gt; 0</strong>: Performance scores <em>increase</em> selection</li>
+                  <li><strong>Interaction ≠ 0</strong>: Brand effect varies by benchmark visibility</li>
+                  <li><strong>All effects ≈ 0</strong>: No detectable treatment influence</li>
+                </ul>
+              </div>
+            </div>
+
+            <div style={{ 
+              backgroundColor: '#eff6ff', 
+              padding: '1.5rem', 
+              borderRadius: '8px',
+              border: '1px solid #bfdbfe'
+            }}>
+              <h4 style={{ margin: '0 0 1rem 0', color: '#1e40af' }}>Key Charts to Examine</h4>
+              <div style={{ color: '#1e3a8a', lineHeight: 1.8, fontSize: '0.9rem' }}>
+                <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                  <li><strong>ATE Forest Plot</strong>: Main causal estimates with confidence intervals</li>
+                  <li><strong>2×2 Cell Table</strong>: Selection rates by treatment combination</li>
+                  <li><strong>Interaction Plot</strong>: Non-parallel lines = interaction effect</li>
+                  <li><strong>Rating → Selection</strong>: Does higher rating predict selection?</li>
+                  <li><strong>Order Analysis</strong>: Check for position bias (validity threat)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ 
+            backgroundColor: '#fefce8', 
+            padding: '1rem', 
+            borderRadius: '8px',
+            border: '1px solid #fef08a',
+            marginTop: '1.5rem'
+          }}>
+            <p style={{ margin: 0, color: '#854d0e', fontSize: '0.9rem', lineHeight: 1.7 }}>
+              <strong>Reading the Results:</strong> Look for effects where the 95% CI does not cross zero (statistically significant). 
+              Compare effect sizes across models to identify heterogeneous treatment effects. 
+              Check the "Order Analysis" section to assess whether model presentation order may confound results.
+            </p>
+          </div>
+        </section>
+
+        {/* Cell Means Comparison - Selection Rates by 2x2 Cell */}
+        <section style={{ 
+          backgroundColor: 'white', 
+          borderRadius: '12px', 
+          padding: '2rem', 
+          marginBottom: '2rem',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
+            Selection Rates by Experimental Cell (2×2 Design)
+          </h2>
+          <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '1.5rem' }}>
+            This table shows the selection rate for each model within each cell of the factorial design. 
+            Comparing across rows reveals brand effects; comparing across columns reveals benchmark effects.
+          </p>
+
+          {/* Cell Means Table */}
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'left' }}>
+                    Model
+                  </th>
+                  <th style={{ padding: '0.75rem', backgroundColor: '#f0fdf4', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                    Brand + Bench (A)
+                  </th>
+                  <th style={{ padding: '0.75rem', backgroundColor: '#fef3c7', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                    Brand Only (B)
+                  </th>
+                  <th style={{ padding: '0.75rem', backgroundColor: '#fefce8', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                    Anon + Bench (C)
+                  </th>
+                  <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                    Control
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {models.map((modelId, idx) => {
+                  const modelName = getRealModelName(modelId);
+                  const cellA = cellMeansData.find(d => d.model === modelName && d.condition === 'Brand + Bench');
+                  const cellB = cellMeansData.find(d => d.model === modelName && d.condition === 'Brand Only');
+                  const cellC = cellMeansData.find(d => d.model === modelName && d.condition === 'Anon + Bench');
+                  const cellControl = cellMeansData.find(d => d.model === modelName && d.condition === 'Control');
+                  
+                  return (
+                    <tr key={modelId} style={{ backgroundColor: idx % 2 === 0 ? 'white' : '#fafafa' }}>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', fontWeight: 500 }}>
+                        {modelName}
+                      </td>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                        {cellA?.rate.toFixed(1)}%
+                      </td>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                        {cellB?.rate.toFixed(1)}%
+                      </td>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                        {cellC?.rate.toFixed(1)}%
+                      </td>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                        {cellControl?.rate.toFixed(1)}%
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ 
+            backgroundColor: '#dbeafe', 
+            padding: '1rem', 
+            borderRadius: '6px', 
+            marginTop: '1.5rem',
+            border: '1px solid #93c5fd'
+          }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#1e40af', fontSize: '0.95rem' }}>How to Read This Table</h4>
+            <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#1e3a8a', fontSize: '0.9rem', lineHeight: 1.7 }}>
+              <li><strong>Brand Effect:</strong> Compare columns A vs C (with benchmarks) or B vs Control (without benchmarks)</li>
+              <li><strong>Benchmark Effect:</strong> Compare columns A vs B (with brand) or C vs Control (without brand)</li>
+              <li><strong>Interaction:</strong> If (A - C) ≠ (B - Control), there's an interaction between treatments</li>
+            </ul>
+          </div>
+        </section>
+
         {/* Selection Proportions by Treatment */}
         <section style={{ 
           backgroundColor: 'white', 
@@ -1452,252 +1667,6 @@ export default function Analytics() {
           </div>
         </section>
 
-        {/* Presentation Order Analysis */}
-        {presentationOrderAnalysis && presentationOrderAnalysis.length > 0 && (
-          <section style={{ 
-            backgroundColor: 'white', 
-            borderRadius: '12px', 
-            padding: '2rem', 
-            marginBottom: '2rem',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-          }}>
-            <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-              Model Presentation Order Analysis (Potential Bias Check)
-            </h2>
-            <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '1.5rem' }}>
-              <strong>Important:</strong> Models are always presented in the same order within each condition. 
-              This could introduce <strong>primacy bias</strong> (favoring first-seen models) or <strong>recency bias</strong> (favoring last-seen models).
-              Comparing average ratings and selection rates by position helps identify if order effects confound the treatment effects.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>
-              {/* Selection Rate by Position */}
-              <div>
-                <h3 style={{ margin: '0 0 1rem 0', color: '#374151', fontSize: '1.1rem' }}>
-                  Selection Rate by Presentation Position
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={presentationOrderAnalysis}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="position" 
-                      tick={{ fontSize: 12 }}
-                    />
-                    <YAxis 
-                      tickFormatter={(v) => `${v}%`} 
-                      domain={[0, 'auto']}
-                      label={{ value: 'Selection Rate (%)', angle: -90, position: 'insideLeft' }}
-                    />
-                    <Tooltip 
-                      formatter={(value: number, name: string) => {
-                        if (name === 'selectionRate') return [`${value.toFixed(1)}%`, 'Selection Rate'];
-                        return [value, name];
-                      }}
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div style={{ 
-                              backgroundColor: 'white', 
-                              padding: '0.75rem', 
-                              border: '1px solid #e2e8f0',
-                              borderRadius: '6px',
-                              fontSize: '0.9rem'
-                            }}>
-                              <p style={{ margin: 0, fontWeight: 600 }}>{data.position}: {data.model}</p>
-                              <p style={{ margin: '0.25rem 0 0 0' }}>Selection Rate: {data.selectionRate.toFixed(1)}%</p>
-                              <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>n = {data.count}</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar dataKey="selectionRate" name="Selection Rate">
-                      {presentationOrderAnalysis.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={MODEL_COLORS[`model-${entry.positionNum}`] || '#94a3b8'} 
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Average Rating by Position */}
-              <div>
-                <h3 style={{ margin: '0 0 1rem 0', color: '#374151', fontSize: '1.1rem' }}>
-                  Average Rating by Presentation Position
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={presentationOrderAnalysis}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="position" 
-                      tick={{ fontSize: 12 }}
-                    />
-                    <YAxis 
-                      domain={[0, 5]}
-                      label={{ value: 'Avg Rating (1-5)', angle: -90, position: 'insideLeft' }}
-                    />
-                    <Tooltip 
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div style={{ 
-                              backgroundColor: 'white', 
-                              padding: '0.75rem', 
-                              border: '1px solid #e2e8f0',
-                              borderRadius: '6px',
-                              fontSize: '0.9rem'
-                            }}>
-                              <p style={{ margin: 0, fontWeight: 600 }}>{data.position}: {data.model}</p>
-                              <p style={{ margin: '0.25rem 0 0 0' }}>Avg Rating: {data.avgRating.toFixed(2)}/5</p>
-                              <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>n = {data.count}</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar dataKey="avgRating" name="Avg Rating">
-                      {presentationOrderAnalysis.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={MODEL_COLORS[`model-${entry.positionNum}`] || '#94a3b8'} 
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Summary Table */}
-            <div style={{ marginTop: '1.5rem', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                <thead>
-                  <tr>
-                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'left' }}>Position</th>
-                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'left' }}>Model (Always Same)</th>
-                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'center' }}>Avg Rating</th>
-                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'center' }}>Selection Rate</th>
-                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'center' }}>n</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {presentationOrderAnalysis.map((row, idx) => (
-                    <tr key={row.position} style={{ backgroundColor: idx % 2 === 0 ? 'white' : '#fafafa' }}>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>{row.position} (shown {row.positionNum === 1 ? 'first' : row.positionNum === 4 ? 'last' : `${row.positionNum}nd/3rd`})</td>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', fontWeight: 500 }}>{row.model}</td>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>{row.avgRating.toFixed(2)}/5</td>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>{row.selectionRate.toFixed(1)}%</td>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>{row.count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div style={{ 
-              backgroundColor: '#fef2f2', 
-              padding: '1rem', 
-              borderRadius: '6px', 
-              marginTop: '1.5rem',
-              border: '1px solid #fecaca'
-            }}>
-              <h4 style={{ margin: '0 0 0.5rem 0', color: '#991b1b', fontSize: '0.95rem' }}>Caution: Confounded Effects</h4>
-              <p style={{ margin: 0, color: '#7f1d1d', fontSize: '0.9rem', lineHeight: 1.7 }}>
-                <strong>Position and Model Identity are perfectly confounded.</strong> We cannot separate whether differences 
-                are due to presentation order (primacy/recency) or intrinsic model quality. For example, if Position 1 
-                (OpenAI GPT) has higher selection rates, it could be because:
-              </p>
-              <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem', color: '#7f1d1d', fontSize: '0.9rem', lineHeight: 1.7 }}>
-                <li>Primacy effect (first-seen model is favored)</li>
-                <li>OpenAI GPT genuinely provides better responses</li>
-                <li>Brand recognition (if in branded conditions)</li>
-              </ul>
-              <p style={{ margin: '0.75rem 0 0 0', color: '#7f1d1d', fontSize: '0.9rem' }}>
-                <strong>Recommendation:</strong> Future studies should randomize model presentation order to disentangle these effects.
-              </p>
-            </div>
-          </section>
-        )}
-
-        {/* Key Findings */}
-        <section style={{ 
-          backgroundColor: 'white', 
-          borderRadius: '12px', 
-          padding: '2rem', 
-          marginBottom: '2rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-            Summary & Key Findings
-          </h2>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-            <div style={{ backgroundColor: '#f0f9ff', padding: '1.5rem', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#0369a1' }}>
-                {dashboardData.summary.total_participants}
-              </div>
-              <div style={{ color: '#0c4a6e', fontWeight: 500 }}>Total Participants</div>
-            </div>
-            <div style={{ backgroundColor: '#f0fdf4', padding: '1.5rem', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#15803d' }}>
-                {dashboardData.summary.total_selections}
-              </div>
-              <div style={{ color: '#14532d', fontWeight: 500 }}>Total Selections</div>
-            </div>
-            <div style={{ backgroundColor: '#fef3c7', padding: '1.5rem', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#b45309' }}>
-                4
-              </div>
-              <div style={{ color: '#78350f', fontWeight: 500 }}>Conditions (2×2)</div>
-            </div>
-          </div>
-
-          <div style={{ 
-            backgroundColor: '#f8fafc', 
-            padding: '1.5rem', 
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0'
-          }}>
-            <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>Causal Identification & Interpretation (Potential Outcomes Framework)</h4>
-            <div style={{ color: '#475569', lineHeight: 1.8 }}>
-              <p style={{ marginBottom: '1rem' }}>
-                <strong>Research Question:</strong> Do people choose AI models based on <em>brand recognition</em> or <em>objective performance metrics</em>?
-              </p>
-              <p style={{ marginBottom: '1rem' }}>
-                <strong>Identification Strategy:</strong> This within-subjects design exposes each participant to all four treatment combinations 
-                in a fixed order (B → A → C → Control). While this controls for individual-level confounders, 
-                potential order/carryover effects should be considered when interpreting results. 
-                The factorial design enables estimation of main effects and interactions.
-              </p>
-              <p style={{ marginBottom: '1rem' }}>
-                <strong>Estimand Definitions:</strong>
-              </p>
-              <ul style={{ margin: '0 0 1rem 0', paddingLeft: '1.2rem' }}>
-                <li><strong>τ<sub>brand</sub></strong> = E[Y<sub>i</sub>(brand=1) - Y<sub>i</sub>(brand=0)] — Average effect of revealing brand identity</li>
-                <li><strong>τ<sub>bench</sub></strong> = E[Y<sub>i</sub>(bench=1) - Y<sub>i</sub>(bench=0)] — Average effect of showing performance metrics</li>
-                <li><strong>τ<sub>interaction</sub></strong> = (τ<sub>brand|bench=1</sub> - τ<sub>brand|bench=0</sub>) — Effect modification test</li>
-              </ul>
-              <p style={{ marginBottom: '1rem' }}>
-                <strong>Interpreting Results:</strong>
-              </p>
-              <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
-                <li>If <strong>τ̂<sub>brand</sub> &gt; 0</strong>: Brand visibility <em>increases</em> selection probability (brand-driven behavior)</li>
-                <li>If <strong>τ̂<sub>brand</sub> &lt; 0</strong>: Brand visibility <em>decreases</em> selection (brand aversion or competitor preference)</li>
-                <li>If <strong>τ̂<sub>bench</sub> ≠ 0</strong>: Performance information causally influences choice (rational decision-making)</li>
-                <li>If <strong>τ̂<sub>interaction</sub> ≠ 0</strong>: Treatment effects are heterogeneous — brand effect depends on benchmark presence</li>
-                <li>If all effects ≈ 0: Selection appears random or driven by unobserved factors (e.g., UI position)</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
         {/* Interaction Plot & Forest Plot */}
         <section style={{ 
           backgroundColor: 'white', 
@@ -1710,9 +1679,89 @@ export default function Analytics() {
             Treatment Effect Heterogeneity Analysis
           </h2>
           <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '1.5rem' }}>
-            These visualizations help identify whether treatment effects vary across conditions (effect modification) 
+            These visualizations help identify whether treatment effects vary across conditions (effect modification)
             and provide a clear summary of all estimated effects with confidence intervals.
           </p>
+
+          {/* Model Selector for this section */}
+          <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
+            <label style={{ fontWeight: 500, color: '#374151' }}>Select Model:</label>
+            <Select.Root value={selectedModel} onValueChange={setSelectedModel}>
+              <Select.Trigger
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  minWidth: '200px',
+                  gap: '0.5rem',
+                  outline: 'none',
+                }}
+              >
+                <Select.Value />
+                <Select.Icon>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Content
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    boxShadow: '0 10px 38px -10px rgba(22, 23, 24, 0.35), 0 10px 20px -15px rgba(22, 23, 24, 0.2)',
+                    border: '1px solid #e2e8f0',
+                    overflow: 'hidden',
+                    zIndex: 1000,
+                  }}
+                  position="popper"
+                  sideOffset={4}
+                >
+                  <Select.Viewport style={{ padding: '0.25rem' }}>
+                    {models.map(m => (
+                      <Select.Item
+                        key={m}
+                        value={m}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          outline: 'none',
+                          fontSize: '1rem',
+                          color: '#374151',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f3f4f6';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <Select.ItemText>{getRealModelName(m)}</Select.ItemText>
+                        <Select.ItemIndicator>
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 6L5 9L10 3" stroke="#4a90e2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    ))}
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
+            <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
+              (Charts below show data for the selected model)
+            </span>
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>
             {/* Interaction Plot */}
@@ -1835,92 +1884,6 @@ export default function Analytics() {
                 Gray bars = not significant. Effects not crossing zero indicate a detectable causal impact.
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Cell Means Comparison */}
-        <section style={{ 
-          backgroundColor: 'white', 
-          borderRadius: '12px', 
-          padding: '2rem', 
-          marginBottom: '2rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-            Selection Rates by Experimental Cell (2×2 Design)
-          </h2>
-          <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '1.5rem' }}>
-            This table shows the selection rate for each model within each cell of the factorial design. 
-            Comparing across rows reveals brand effects; comparing across columns reveals benchmark effects.
-          </p>
-
-          {/* Cell Means Table */}
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'left' }}>
-                    Model
-                  </th>
-                  <th style={{ padding: '0.75rem', backgroundColor: '#f0fdf4', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                    Brand + Bench (A)
-                  </th>
-                  <th style={{ padding: '0.75rem', backgroundColor: '#fef3c7', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                    Brand Only (B)
-                  </th>
-                  <th style={{ padding: '0.75rem', backgroundColor: '#fefce8', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                    Anon + Bench (C)
-                  </th>
-                  <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                    Control
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {models.map((modelId, idx) => {
-                  const modelName = getRealModelName(modelId);
-                  const cellA = cellMeansData.find(d => d.model === modelName && d.condition === 'Brand + Bench');
-                  const cellB = cellMeansData.find(d => d.model === modelName && d.condition === 'Brand Only');
-                  const cellC = cellMeansData.find(d => d.model === modelName && d.condition === 'Anon + Bench');
-                  const cellControl = cellMeansData.find(d => d.model === modelName && d.condition === 'Control');
-                  
-                  return (
-                    <tr key={modelId} style={{ backgroundColor: idx % 2 === 0 ? 'white' : '#fafafa' }}>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', fontWeight: 500 }}>
-                        {modelName}
-                      </td>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                        {cellA?.rate.toFixed(1)}%
-                      </td>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                        {cellB?.rate.toFixed(1)}%
-                      </td>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                        {cellC?.rate.toFixed(1)}%
-                      </td>
-                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                        {cellControl?.rate.toFixed(1)}%
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div style={{ 
-            backgroundColor: '#dbeafe', 
-            padding: '1rem', 
-            borderRadius: '6px', 
-            marginTop: '1.5rem',
-            border: '1px solid #93c5fd'
-          }}>
-            <h4 style={{ margin: '0 0 0.5rem 0', color: '#1e40af', fontSize: '0.95rem' }}>How to Read This Table</h4>
-            <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#1e3a8a', fontSize: '0.9rem', lineHeight: 1.7 }}>
-              <li><strong>Brand Effect:</strong> Compare columns A vs C (with benchmarks) or B vs Control (without benchmarks)</li>
-              <li><strong>Benchmark Effect:</strong> Compare columns A vs B (with brand) or C vs Control (without brand)</li>
-              <li><strong>Interaction:</strong> If (A - C) ≠ (B - Control), there's an interaction between treatments</li>
-            </ul>
           </div>
         </section>
 
@@ -2148,12 +2111,12 @@ export default function Analytics() {
             <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1rem' }}>
               How likely is a model to be selected based on the rating it received?
             </p>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={ratingSelectionAnalysis.selectionRateByRating}>
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={ratingSelectionAnalysis.selectionRateByRating} margin={{ bottom: 30 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="rating" 
-                  label={{ value: 'Rating Given (1-5)', position: 'bottom', offset: -5 }}
+                <XAxis
+                  dataKey="rating"
+                  label={{ value: 'Rating Given (1-5)', position: 'bottom', offset: 10 }}
                 />
                 <YAxis 
                   tickFormatter={(v) => `${v}%`} 
@@ -2251,6 +2214,180 @@ export default function Analytics() {
                   potential evidence of brand effects or benchmark information influence.
                 </li>
               </ul>
+            </div>
+          </section>
+        )}
+
+        {/* Presentation Order Analysis - Moved to end as validity check */}
+        {presentationOrderAnalysis && presentationOrderAnalysis.length > 0 && (
+          <section style={{ 
+            backgroundColor: 'white', 
+            borderRadius: '12px', 
+            padding: '2rem', 
+            marginBottom: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
+              Model Presentation Order Analysis (Potential Bias Check)
+            </h2>
+            <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '1.5rem' }}>
+              <strong>Important:</strong> Models are always presented in the same order within each condition. 
+              This could introduce <strong>primacy bias</strong> (favoring first-seen models) or <strong>recency bias</strong> (favoring last-seen models).
+              Comparing average ratings and selection rates by position helps identify if order effects confound the treatment effects.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>
+              {/* Selection Rate by Position */}
+              <div>
+                <h3 style={{ margin: '0 0 1rem 0', color: '#374151', fontSize: '1.1rem' }}>
+                  Selection Rate by Presentation Position
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={presentationOrderAnalysis}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="position" 
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis 
+                      tickFormatter={(v) => `${v}%`} 
+                      domain={[0, 'auto']}
+                      label={{ value: 'Selection Rate (%)', angle: -90, position: 'insideLeft' }}
+                    />
+                    <Tooltip 
+                      formatter={(value: number, name: string) => {
+                        if (name === 'selectionRate') return [`${value.toFixed(1)}%`, 'Selection Rate'];
+                        return [value, name];
+                      }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div style={{ 
+                              backgroundColor: 'white', 
+                              padding: '0.75rem', 
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '6px',
+                              fontSize: '0.9rem'
+                            }}>
+                              <p style={{ margin: 0, fontWeight: 600 }}>{data.position}: {data.model}</p>
+                              <p style={{ margin: '0.25rem 0 0 0' }}>Selection Rate: {data.selectionRate.toFixed(1)}%</p>
+                              <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>n = {data.count}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="selectionRate" name="Selection Rate">
+                      {presentationOrderAnalysis.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={MODEL_COLORS[`model-${entry.positionNum}`] || '#94a3b8'} 
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Average Rating by Position */}
+              <div>
+                <h3 style={{ margin: '0 0 1rem 0', color: '#374151', fontSize: '1.1rem' }}>
+                  Average Rating by Presentation Position
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={presentationOrderAnalysis}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="position" 
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis 
+                      domain={[0, 5]}
+                      label={{ value: 'Avg Rating (1-5)', angle: -90, position: 'insideLeft' }}
+                    />
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div style={{ 
+                              backgroundColor: 'white', 
+                              padding: '0.75rem', 
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '6px',
+                              fontSize: '0.9rem'
+                            }}>
+                              <p style={{ margin: 0, fontWeight: 600 }}>{data.position}: {data.model}</p>
+                              <p style={{ margin: '0.25rem 0 0 0' }}>Avg Rating: {data.avgRating.toFixed(2)}/5</p>
+                              <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>n = {data.count}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="avgRating" name="Avg Rating">
+                      {presentationOrderAnalysis.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={MODEL_COLORS[`model-${entry.positionNum}`] || '#94a3b8'} 
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Summary Table */}
+            <div style={{ marginTop: '1.5rem', overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'left' }}>Position</th>
+                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'left' }}>Model (Always Same)</th>
+                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'center' }}>Avg Rating</th>
+                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'center' }}>Selection Rate</th>
+                    <th style={{ padding: '0.75rem', backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', textAlign: 'center' }}>n</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {presentationOrderAnalysis.map((row, idx) => (
+                    <tr key={row.position} style={{ backgroundColor: idx % 2 === 0 ? 'white' : '#fafafa' }}>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>{row.position} (shown {row.positionNum === 1 ? 'first' : row.positionNum === 4 ? 'last' : `${row.positionNum}nd/3rd`})</td>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', fontWeight: 500 }}>{row.model}</td>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>{row.avgRating.toFixed(2)}/5</td>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>{row.selectionRate.toFixed(1)}%</td>
+                      <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', textAlign: 'center' }}>{row.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ 
+              backgroundColor: '#fef2f2', 
+              padding: '1rem', 
+              borderRadius: '6px', 
+              marginTop: '1.5rem',
+              border: '1px solid #fecaca'
+            }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', color: '#991b1b', fontSize: '0.95rem' }}>Caution: Confounded Effects</h4>
+              <p style={{ margin: 0, color: '#7f1d1d', fontSize: '0.9rem', lineHeight: 1.7 }}>
+                <strong>Position and Model Identity are perfectly confounded.</strong> We cannot separate whether differences 
+                are due to presentation order (primacy/recency) or intrinsic model quality. For example, if Position 1 
+                (OpenAI GPT) has higher selection rates, it could be because:
+              </p>
+              <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem', color: '#7f1d1d', fontSize: '0.9rem', lineHeight: 1.7 }}>
+                <li>Primacy effect (first-seen model is favored)</li>
+                <li>OpenAI GPT genuinely provides better responses</li>
+                <li>Brand recognition (if in branded conditions)</li>
+              </ul>
+              <p style={{ margin: '0.75rem 0 0 0', color: '#7f1d1d', fontSize: '0.9rem' }}>
+                <strong>Recommendation:</strong> Future studies should randomize model presentation order to disentangle these effects.
+              </p>
             </div>
           </section>
         )}
