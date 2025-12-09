@@ -794,12 +794,179 @@ export default function Analytics() {
     };
   }, [dashboardData]);
 
+  // Skeleton component for loading state
+  const Skeleton = ({ className = '', style = {} }: { className?: string; style?: React.CSSProperties }) => (
+    <div 
+      className={className}
+      style={{ 
+        backgroundColor: '#e2e8f0',
+        borderRadius: '4px',
+        animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        ...style 
+      }} 
+    />
+  );
+
+  const SkeletonCard = () => (
+    <div style={{ 
+      backgroundColor: 'white', 
+      borderRadius: '12px', 
+      padding: '2rem', 
+      marginBottom: '2rem',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    }}>
+      <Skeleton style={{ height: '28px', width: '60%', marginBottom: '1.5rem' }} />
+      <Skeleton style={{ height: '16px', width: '90%', marginBottom: '0.75rem' }} />
+      <Skeleton style={{ height: '16px', width: '75%', marginBottom: '1.5rem' }} />
+      <Skeleton style={{ height: '250px', width: '100%' }} />
+    </div>
+  );
+
+  const SkeletonStats = () => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+      {[1, 2, 3].map(i => (
+        <div key={i} style={{ 
+          backgroundColor: 'white', 
+          padding: '1.5rem', 
+          borderRadius: '8px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <Skeleton style={{ height: '48px', width: '60%', marginBottom: '0.75rem', margin: '0 auto' }} />
+          <Skeleton style={{ height: '16px', width: '80%', margin: '0 auto' }} />
+        </div>
+      ))}
+    </div>
+  );
+
+  const SkeletonTable = () => (
+    <div style={{ 
+      backgroundColor: 'white', 
+      borderRadius: '12px', 
+      padding: '2rem', 
+      marginBottom: '2rem',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    }}>
+      <Skeleton style={{ height: '28px', width: '50%', marginBottom: '1.5rem' }} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem' }}>
+        {[...Array(20)].map((_, i) => (
+          <Skeleton key={i} style={{ height: '40px' }} />
+        ))}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Causal Inference Analytics</h1>
-          <p className="text-gray-600">Loading analytics data...</p>
+      <main style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '2rem', paddingTop: 'calc(80px + 2rem)' }}>
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
+        <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '1rem' }}>
+                Loading experiment data...
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <Skeleton style={{ height: '20px', width: '80px', borderRadius: '4px' }} />
+              <Skeleton style={{ height: '20px', width: '80px', borderRadius: '4px' }} />
+              <Skeleton style={{ height: '36px', width: '80px', borderRadius: '6px' }} />
+            </div>
+          </div>
+
+          {/* Study Design Skeleton */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            borderRadius: '12px', 
+            padding: '2rem', 
+            marginBottom: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <Skeleton style={{ height: '28px', width: '45%', marginBottom: '1rem' }} />
+            <Skeleton style={{ height: '16px', width: '100%', marginBottom: '0.5rem' }} />
+            <Skeleton style={{ height: '16px', width: '85%', marginBottom: '1.5rem' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+              <Skeleton style={{ height: '150px' }} />
+              <Skeleton style={{ height: '150px' }} />
+            </div>
+          </div>
+
+          {/* ATE Chart Skeleton */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            borderRadius: '12px', 
+            padding: '2rem', 
+            marginBottom: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <Skeleton style={{ height: '28px', width: '40%', marginBottom: '1rem' }} />
+            <Skeleton style={{ height: '16px', width: '70%', marginBottom: '1.5rem' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
+                  <Skeleton style={{ height: '20px', width: '60%', marginBottom: '0.5rem' }} />
+                  <Skeleton style={{ height: '32px', width: '80%', marginBottom: '0.5rem' }} />
+                  <Skeleton style={{ height: '14px', width: '90%' }} />
+                </div>
+              ))}
+            </div>
+            <Skeleton style={{ height: '400px', width: '100%' }} />
+          </div>
+
+          {/* Summary Stats Skeleton */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            borderRadius: '12px', 
+            padding: '2rem', 
+            marginBottom: '2rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <Skeleton style={{ height: '28px', width: '35%', marginBottom: '1.5rem' }} />
+            <SkeletonStats />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+              <Skeleton style={{ height: '120px' }} />
+              <Skeleton style={{ height: '120px' }} />
+            </div>
+          </div>
+
+          {/* Table Skeleton */}
+          <SkeletonTable />
+
+          {/* Charts Row Skeleton */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem', marginBottom: '2rem' }}>
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+
+          {/* Loading indicator */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: '0.75rem',
+            padding: '2rem',
+            color: '#64748b'
+          }}>
+            <div style={{
+              width: '20px',
+              height: '20px',
+              border: '2px solid #e2e8f0',
+              borderTopColor: '#3b82f6',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            <span>Loading analytics data...</span>
+          </div>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       </main>
     );
@@ -807,11 +974,10 @@ export default function Analytics() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Causal Inference Analytics</h1>
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-            <p className="text-red-700"><strong>Error:</strong> {error}</p>
+      <main style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '2rem', paddingTop: 'calc(80px + 2rem)' }}>
+        <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
+          <div style={{ backgroundColor: '#fef2f2', borderLeft: '4px solid #ef4444', padding: '1rem', borderRadius: '6px' }}>
+            <p style={{ color: '#b91c1c' }}><strong>Error:</strong> {error}</p>
           </div>
         </div>
       </main>
@@ -820,10 +986,9 @@ export default function Analytics() {
 
   if (!dashboardData) {
     return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Causal Inference Analytics</h1>
-          <p className="text-gray-600">No data available.</p>
+      <main style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '2rem', paddingTop: 'calc(80px + 2rem)' }}>
+        <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
+          <p style={{ color: '#4b5563' }}>No data available.</p>
         </div>
       </main>
     );
@@ -924,15 +1089,12 @@ export default function Analytics() {
   } : null;
 
   return (
-    <main style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
+    <main style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '2rem', paddingTop: 'calc(80px + 2rem)' }}>
+      <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 700, color: '#1e293b' }}>
-              Causal Inference Analytics
-            </h1>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#64748b', fontSize: '1rem' }}>
+            <p style={{ margin: 0, color: '#64748b', fontSize: '1rem' }}>
               AI Model Selection: Brand vs Performance Effects
             </p>
           </div>
